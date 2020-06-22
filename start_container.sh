@@ -4,8 +4,8 @@ set -e
 cur=$(dirname $(readlink -f $0))
 
 # Get ID
-if [[ $# -ne 1 ]] ; then
-  echo Usage: $0 ID
+if [[ $# -lt 1 ]] ; then
+  echo Usage: $0 ID [USER]
   exit 1
 fi
 id=$1; shift
@@ -15,7 +15,7 @@ hostname=$(printf "as%03d" $id)
 user=$(ruby $cur/olb-read.rb $hostname)
 if [[ $user == "" ]] ; then
   echo no user
-  user=ando
+  user=${1:-ando}
 fi
 
 ip=172.16.6.$id
@@ -64,6 +64,10 @@ if [ $container_exist -eq 0 ] ; then
   # Create scratch area
   mkdir -p /scratch/$user
   chown $user /scratch/$user
+
+  # Clean
+  rm -f /tmp/*.sshd_config
+  rm -f /tmp/*.xrdp.ini
 
   # Create sshd_config
   sshd_config=$(mktemp --suffix=.sshd_config)
