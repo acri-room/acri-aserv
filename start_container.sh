@@ -88,6 +88,7 @@ if [ $container_exist -eq 0 ] ; then
     -v /scratch/$user:/scratch \
     -v /home/$user:/home/$user \
     -v /tools:/tools \
+    -v /opt/xilinx/platforms:/opt/xilinx/platforms \
     -v $sshd_config:/etc/ssh/sshd_config \
     -v $xrdp_ini:/etc/xrdp/xrdp.ini \
     --device=$xclmgmt:$xclmgmt \
