@@ -20,7 +20,7 @@ fi
 
 ip=172.16.6.$id
 repo=acri-as
-tag=17
+tag=22
 #repo=ubuntu
 #tag=18.04
 name=${2:-"user-$user"};
@@ -121,6 +121,8 @@ docker run \
   -v /opt/xilinx/platforms:/opt/xilinx/platforms \
   -v $sshd_config:/etc/ssh/sshd_config \
   -v $xrdp_ini:/etc/xrdp/xrdp.ini \
+  -v $cur/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh \
+  -e LOGIN_USER=$user \
   --device=$xclmgmt:$xclmgmt \
   --device=$xocl:$xocl \
   --cpus=14.000 \
