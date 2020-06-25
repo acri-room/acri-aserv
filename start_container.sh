@@ -80,10 +80,10 @@ if [ $container_exist -eq 0 ] ; then
   sed "s/%USER%/$user/" $cur/xrdp.ini.base > $xrdp_ini
 
   # Reset FPGA
-  rmmod xclmgmt
-  rmmod xocl
-  modprobe xclmgmt
-  modprobe xocl
+  /usr/sbin/rmmod xclmgmt
+  /usr/sbin/rmmod xocl
+  /usr/sbin/modprobe xclmgmt
+  /usr/sbin/modprobe xocl
   yes | /opt/xilinx/xrt/bin/xbutil reset > /dev/null
 
   # Find driver
