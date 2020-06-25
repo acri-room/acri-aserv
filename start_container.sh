@@ -5,28 +5,31 @@ cur=$(dirname $(readlink -f $0))
 
 # Get ID
 if [[ $# -lt 1 ]] ; then
-  echo Usage: $0 ID [USER]
+  echo Usage: $0 ID [USER [NAME]]
   exit 1
 fi
 id=$1; shift
 
 # Get user
 hostname=$(printf "as%03d" $id)
-user=$(ruby $cur/olb-read.rb $hostname)
+user=${1:-$(ruby $cur/olb-read.rb $hostname)};
 if [[ $user == "" ]] ; then
-  echo no user
-  user=${1:-ando}
+  echo No user
+  exit
 fi
 
 ip=172.16.6.$id
 repo=acri-as
-tag=16
+tag=17
 #repo=ubuntu
 #tag=18.04
-name="user-$user"
+name=${2:-"user-$user"};
 #cmd="/bin/bash"
 cmd="docker-entrypoint.sh"
 scratch_max_size=$((512*1024*1024*1024)) # 512GB
+
+echo Info: $(date)
+echo Info: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name
 
 # Check current container
 container_exist=0
@@ -51,8 +54,9 @@ if [ $container_exist -eq 0 ] ; then
   # Clean scratch area
   mkdir -p /scratch
   while [ $(du -s /scratch | awk '{print $1}') -gt $scratch_max_size ] ; do
-    echo rm -r /scratch/$(ls -1rt /scratch | head -n 1)
-    rm -r /scratch/$(ls -1rt /scratch | head -n 1)
+    rmdir=/scratch/$(ls -1rt /scratch | head -n 1)
+    echo Info: Remove $rmdir
+    rm -r $rmdir
     sleep 1
   done
 
@@ -80,7 +84,7 @@ if [ $container_exist -eq 0 ] ; then
   rmmod xocl
   modprobe xclmgmt
   modprobe xocl
-  yes | /opt/xilinx/xrt/bin/xbutil reset
+  yes | /opt/xilinx/xrt/bin/xbutil reset > /dev/null
 
   # Find driver
   xocl=$(/opt/xilinx/xrt/bin/xbutil scan | grep "xilinx_u" | sed -r 's/^.*inst=([0-9]*).*/\1/')
@@ -113,5 +117,5 @@ if [ $container_exist -eq 0 ] ; then
     --cpus=14.000 \
     --memory 120g \
     $repo:$tag \
-    $cmd
+    $cmd > /dev/null
 fi

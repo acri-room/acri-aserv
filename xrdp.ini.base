@@ -46,7 +46,7 @@ bitmap_compression=true
 bulk_compression=true
 #hidelogwindow=true
 max_bpp=32
-new_cursors=true
+new_cursors=false
 ; fastpath - can be 'input', 'output', 'both', 'none'
 use_fastpath=both
 ; when true, userid/password *must* be passed on cmd line
