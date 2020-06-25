@@ -37,7 +37,7 @@ for id in $(docker ps -a --filter "name=user-" --format "{{.ID}}") ; do
   tmp=$(docker ps -a --filter "id=$id" --format "{{.Names}}")
   if [[ $tmp != "$name" ]] ; then
     echo Info: Stop user container: id=$id, name=$tmp
-    docker rm -f $id
+    docker rm -f $id > /dev/null
   else
     echo Info: User container is already running: id=$id, name=$tmp
     container_exist=1
@@ -118,4 +118,6 @@ if [ $container_exist -eq 0 ] ; then
     --memory 120g \
     $repo:$tag \
     $cmd > /dev/null
+
+  echo Info: Started
 fi
