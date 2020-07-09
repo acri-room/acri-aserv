@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+echo Info: $(date)
+
 cur=$(dirname $(readlink -f $0))
 
 # Get ID
@@ -14,7 +16,7 @@ id=$1; shift
 hostname=$(printf "as%03d" $id)
 user=${1:-$(ruby $cur/olb-read.rb $hostname)};
 if [[ $user == "" ]] ; then
-  echo No user
+  echo Info: No user
   exit
 fi
 
@@ -28,20 +30,25 @@ name=${2:-"user-$user"};
 cmd="docker-entrypoint.sh"
 scratch_max_size=$((512*1024*1024*1024)) # 512GB
 
-echo Info: $(date)
 echo Info: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name
 
 container_exist=0
 if [[ $name != "maintenance" ]] ; then
-  # Check current container and stop
+  # Check existing container and stop
   for id in $(docker ps -a --filter "name=user-" --format "{{.ID}}") ; do
     tmp=$(docker ps -a --filter "id=$id" --format "{{.Names}}")
     if [[ $tmp != "$name" ]] ; then
       echo Info: Stop user container: id=$id, name=$tmp
       docker rm -f $id > /dev/null
     else
-      echo Info: User container is already running: id=$id, name=$tmp
-      container_exist=1
+      stat=$(docker inspect --format='{{.State.Status}}' $id)
+      if [[ $stat == "running" ]] ; then
+        echo Info: User container is already running: id=$id, name=$tmp
+	container_exist=1
+      else
+        echo Info: Stop exited user container : id=$id, name=$tmp
+	docker rm -f $id > /dev/null
+      fi
     fi
   done
 fi
