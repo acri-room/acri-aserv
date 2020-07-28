@@ -15,9 +15,10 @@ id=$1; shift
 # Get user
 hostname=$(printf "as%03d" $id)
 user=${1:-$(ruby $cur/olb-read.rb $hostname)};
+name=${2:-"user-$user"};
 if [[ $user == "" ]] ; then
-  echo Info: No user
-  exit
+  echo Info: No user for the next time slot
+  name="no-user"
 fi
 
 ip=172.16.6.$id
@@ -25,12 +26,9 @@ repo=acri-as
 tag=22
 #repo=ubuntu
 #tag=18.04
-name=${2:-"user-$user"};
 #cmd="/bin/bash"
 cmd="docker-entrypoint.sh"
 scratch_max_size=$((512*1024*1024*1024)) # 512GB
-
-echo Info: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name
 
 container_exist=0
 if [[ $name != "maintenance" ]] ; then
@@ -46,7 +44,7 @@ if [[ $name != "maintenance" ]] ; then
         echo Info: User container is already running: id=$id, name=$tmp
 	container_exist=1
       else
-        echo Info: Stop exited user container : id=$id, name=$tmp
+        echo Info: Remove exited user container : id=$id, name=$tmp
 	docker rm -f $id > /dev/null
       fi
     fi
@@ -58,8 +56,13 @@ if [ $container_exist -eq 1 ] ; then
   exit
 fi
 
+# No user
+if [[ $user == "" ]] ; then
+  exit
+fi
+
 # Start container
-echo Info: Start user container: name=$name
+echo Info: Start user container: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name
 
 # Clean
 if [[ $name != "maintenance" ]] ; then

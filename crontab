@@ -1,1 +1,1 @@
-00 */3 * * * /root/acri-aserv/start_container.sh 2 >> /var/log/aserv.log 2>&1
+56 02-23/3 * * * /root/acri-aserv/start_container.sh 2 >> /var/log/aserv.log 2>&1

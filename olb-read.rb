@@ -18,6 +18,7 @@ end
 ###########################################################
 
 t = Time.now
+t = t + (5 * 60) # 5 min. future
 host = ARGV[0]
 
 url = "http://#{SERVER}/olb-view.cgi"
