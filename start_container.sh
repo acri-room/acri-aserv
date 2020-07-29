@@ -6,14 +6,14 @@ echo Info: $(date)
 cur=$(dirname $(readlink -f $0))
 
 # Get ID
-if [[ $# -lt 1 ]] ; then
-  echo Usage: $0 ID [USER [NAME]]
+if [[ $# -lt 2 ]] ; then
+  echo Usage: $0 HOSTNAME IP [USER [NAME]]
   exit 1
 fi
-id=$1; shift
+hostname=$1; shift
+ip=$1; shift
 
 # Get user
-hostname=$(printf "as%03d" $id)
 user=${1:-$(ruby $cur/olb-read.rb $hostname)};
 name=${2:-"user-$user"};
 if [[ $user == "" ]] ; then
@@ -21,14 +21,13 @@ if [[ $user == "" ]] ; then
   name="no-user"
 fi
 
-ip=172.16.6.$id
 repo=acri-as
-tag=22
+tag=24
 #repo=ubuntu
 #tag=18.04
 #cmd="/bin/bash"
 cmd="docker-entrypoint.sh"
-scratch_max_size=$((512*1024*1024*1024)) # 512GB
+scratch_max_size=$((256*1024*1024*1024)) # 256GB
 
 container_exist=0
 if [[ $name != "maintenance" ]] ; then
@@ -135,7 +134,7 @@ docker run \
   -e LOGIN_USER=$user \
   --device=$xclmgmt:$xclmgmt \
   --device=$xocl:$xocl \
-  --cpus=14.000 \
+  --cpus=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2))) \
   --memory 120g \
   $repo:$tag \
   $cmd > /dev/null

@@ -12,7 +12,7 @@ start_container.shに渡す番号を変更すること
 Maintenance
 ===========
 ```
-# ./start_container.sh 102 ando maintenance
+# ./start_container.sh as102 172.16.6.102 ando maintenance
 IP:172.16.6.102でメンテナンス用のコンテナが起動する
 このスクリプト実行でユーザーコンテナの停止、スクラッチ領域の掃除、FPGAリセットは行われない（ユーザーが利用中でも影響しない）
 このコンテナはcronにより停止されない
