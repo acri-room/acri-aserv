@@ -87,7 +87,7 @@ if [[ $name != "maintenance" ]] ; then
 fi
 
 # Mount user home
-ls /home/$user > /dev/null
+ls /home/$user > /dev/null 2>&1 || true
 
 # Create scratch area
 mkdir -p /scratch/$user
