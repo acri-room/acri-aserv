@@ -5,6 +5,17 @@ Setup
 $ sudo su
 # cd /root
 # git clone https://github.com/acri-room/acri-aserv.git
+# cd acri-aserv/docker
+
+U50搭載サーバー
+# docker build -t acri-as:latest -f Dockerfile.u50 .
+
+U280-ES1搭載サーバー
+# docker build -t acri-as:latest -f Dockerfile.u280-es1 .
+
+U200/U250搭載サーバー
+# docker build -t acri-as:latest -f Dockerfile .
+
 # crontab -e
 start_container.shに渡す番号を変更すること
 ```

@@ -149,33 +149,33 @@ ENV VAI_ROOT=/opt/vitis_ai
 ENV PATH="${VAI_ROOT}/utility:${PATH}"
 
 # Install conda
-ENV MY_CONDA_CHANNEL="file:///scratch/conda-channel"
+ENV MY_CONDA_CHANNEL="file:///scratch/conda-channel/X86_64"
 
 WORKDIR /scratch
 RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
     /bin/bash ./miniconda.sh -b -p $VAI_ROOT/conda && \
     ln -s $VAI_ROOT/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 
-COPY files/conda_requirements.txt /scratch/
-COPY files/conda_requirements_neptune.txt /scratch/
-COPY files/pip_requirements.txt /scratch/
-COPY files/pip_requirements_neptune.txt /scratch/
+ADD https://raw.githubusercontent.com/Xilinx/Vitis-AI/v1.1/docker/conda_requirements.txt /scratch/
+ADD https://raw.githubusercontent.com/Xilinx/Vitis-AI/v1.1/docker/conda_requirements_neptune.txt /scratch/
+ADD https://raw.githubusercontent.com/Xilinx/Vitis-AI/v1.1/docker/pip_requirements.txt /scratch/
+ADD https://raw.githubusercontent.com/Xilinx/Vitis-AI/v1.1/docker/pip_requirements_neptune.txt /scratch/
 
-RUN wget -O conda-channel.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=conda-channel_1.2.tar.gz && \
+RUN mkdir -p /scratch/conda-channel && \
+    cd /scratch/conda-channel && \
+    wget -O conda-channel.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=conda-channel-vai1.1.build48.tar.gz && \
     tar xf conda-channel.tar.gz && \
     source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
     conda create -n vitis-ai-caffe \
         python=3.6 caffe_decent \
         --file /scratch/conda_requirements.txt \
-        -c $MY_CONDA_CHANNEL -c defaults -c conda-forge/label/gcc7 && \
-    conda activate vitis-ai-caffe && \
-    pip install -r /scratch/pip_requirements.txt && \
+       -c $MY_CONDA_CHANNEL -c defaults -c conda-forge/label/gcc7 && \
+    conda activate vitis-ai-caffe && pip install -r /scratch/pip_requirements.txt && \
     conda create -n vitis-ai-tensorflow \
-        python=3.6 vai_q_tensorflow keras \
+        python=3.6 vai_q_tensorflow \
         --file /scratch/conda_requirements.txt \
         -c $MY_CONDA_CHANNEL -c defaults -c conda-forge/label/gcc7 && \
-    conda activate vitis-ai-tensorflow && \
-    pip install -r /scratch/pip_requirements.txt && \
+    conda activate vitis-ai-tensorflow && pip install -r /scratch/pip_requirements.txt && \
     conda create -n vitis-ai-neptune \
         python=3.6 \
         --file /scratch/conda_requirements_neptune.txt \
@@ -186,79 +186,71 @@ RUN wget -O conda-channel.tar.gz https://www.xilinx.com/bin/public/openDownload?
     ln -s /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/lib/python3.6/site-packages/vaic/arch /opt/vitis_ai/compiler/arch && \
     rm -rf /scratch/*
 
-# Install Vitis AI 1.2
+# Install Vitis AI 1.1
 WORKDIR /tmp
-RUN wget -O libunilog.deb           https://www.xilinx.com/bin/public/openDownload?filename=libunilog_1.2.0-r10_amd64.deb && \
-    wget -O libtarget-factory.deb   https://www.xilinx.com/bin/public/openDownload?filename=libtarget-factory_1.2.0-r10_amd64.deb && \
-    wget -O libxir.deb              https://www.xilinx.com/bin/public/openDownload?filename=libxir_1.2.0-r12_amd64.deb && \
-    wget -O libvart.deb             https://www.xilinx.com/bin/public/openDownload?filename=libvart_1.2.0-r16_amd64.deb && \
-    wget -O libvitis_ai_library.deb https://www.xilinx.com/bin/public/openDownload?filename=libvitis_ai_library_1.2.0-r15_amd64.deb && \
+RUN cd /tmp/ && \
+	wget -O libunilog.deb https://www.xilinx.com/bin/public/openDownload?filename=libunilog-1.1.0-Linux-build48_amd64.deb && \
+	wget -O libtarget-factory.deb https://www.xilinx.com/bin/public/openDownload?filename=libtarget-factory-1.1.0-Linux-build48_amd64.deb && \
+	wget -O libxir.deb https://www.xilinx.com/bin/public/openDownload?filename=libxir-1.1.0-Linux-build48_amd64.deb && \
+	wget -O libvart.deb https://www.xilinx.com/bin/public/openDownload?filename=libvart-1.1.0-Linux-build48_amd64.deb && \
+	apt-get install -y --no-install-recommends /tmp/*.deb && \
+	rm /tmp/*.deb && \
+	sudo ldconfig
+RUN wget -O libunilog.deb           https://www.xilinx.com/bin/public/openDownload?filename=libunilog-1.1.0-Linux-build48_amd64.deb && \
+    wget -O libtarget-factory.deb   https://www.xilinx.com/bin/public/openDownload?filename=libtarget-factory-1.1.0-Linux-build48_amd64.deb && \
+    wget -O libxir.deb              https://www.xilinx.com/bin/public/openDownload?filename=libxir-1.1.0-Linux-build48_amd64.deb && \
+    wget -O libvart.deb             https://www.xilinx.com/bin/public/openDownload?filename=libvart-1.1.0-Linux-build48_amd64.deb && \
 	  apt-get install -y --no-install-recommends /tmp/*.deb && \
 	  sudo ldconfig && \
 	  rm /tmp/*.deb && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Alveo deployment platforms
-RUN wget -O u200.deb     https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u200-xdma-201830.2-2580015_18.04.deb && \
-    wget -O u250.deb     https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u250-xdma-201830.2-2580015_18.04.deb && \
-	  apt-get install -y ./*.deb && \
-	  rm *.deb && \
+RUN wget -O u50.tar.gz   https://www.xilinx.com/bin/public/openDownload?filename=Xilinx_u50-gen3x16-xdma-201920.3-2784799_18.04_deb.tar.gz && \
+    tar xf u50.tar.gz && \
+	  apt-get install -y /tmp/*.deb && \
+	  rm *.deb *.tar.gz && \
     rm -rf /var/lib/apt/lists/*
-
-##RUN wget -O u280-es1.deb https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u280-es1-xdma-201910.1-2579327_18.04.deb && \
-##	  apt-get install -y ./*.deb && \
-##	  rm *.deb && \
-##    rm -rf /var/lib/apt/lists/*
-
-##RUN wget -O u50.tar.gz   https://www.xilinx.com/bin/public/openDownload?filename=Xilinx_u50-gen3x16-xdma-201920.3-2784799_18.04_deb.tar.gz && \
-##    tar xf u50.tar.gz && \
-##	  apt-get install -y /tmp/*.deb && \
-##	  rm *.deb *.tar.gz && \
-##    rm -rf /var/lib/apt/lists/*
 
 # Vitis AI GitHub
 RUN cd $VAI_ROOT && \
-    git clone https://github.com/Xilinx/Vitis-AI.git workspace
+    git clone https://github.com/Xilinx/Vitis-AI.git workspace && \
+    cd workspace && \
+    git checkout v1.1
 
 # U50 overlay
-##RUN wget https://www.xilinx.com/bin/public/openDownload?filename=U50_xclbin-v2.tar.gz -O U50_xclbin-v2.tar.gz && \
-##    tar xf U50_xclbin-v2.tar.gz && \
-##    cp U50_xclbin/6E250M/dpu.xclbin U50_xclbin/6E250M/hbm_address_assignment.txt /usr/lib && \
-##    rm -rf *.tar.gz U50_xclbin
-
-# U200/U250 overlay
-RUN wget -O overlay.deb https://www.xilinx.com/bin/public/openDownload?filename=xilinx-overlaybins.deb && \
-    wget -O xplusml.deb https://www.xilinx.com/bin/public/openDownload?filename=vai-1.1-xplusml-bins-18.04.deb && \
-	  apt-get install -y /tmp/*.deb && \
-	  rm *.deb && \
-    rm -rf /var/lib/apt/lists/*
-
-# xbutler
-RUN apt-get install -y $VAI_ROOT/workspace/alveo/packages/ubuntu/xbutler_3.0-2.deb & sleep 10
-
-COPY files/supervisor/xbutler.conf /etc/supervisor/conf.d
+RUN wget https://www.xilinx.com/bin/public/openDownload?filename=U50_xclbin-v2.tar.gz -O U50_xclbin-v2.tar.gz && \
+    tar xf U50_xclbin-v2.tar.gz && \
+    cp U50_xclbin/6E250M/dpu.xclbin U50_xclbin/6E250M/hbm_address_assignment.txt /usr/lib && \
+    rm -rf *.tar.gz U50_xclbin
 
 # entry
 COPY files/supervisor/entry.conf /etc/supervisor/conf.d
 
 # VART
+RUN wget -O vitis-ai-runtime.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=vitis-ai-runtime-1.1.2.tar.gz && \
+    tar xf vitis-ai-runtime.tar.gz && \
+    dpkg -i vitis-ai-runtime-1.1.2/VART/X86_64/libvart-*.deb && \
+    rm -rf *.tar.gz vitis-ai-runtime-1.1.2
+
 RUN cd $VAI_ROOT/workspace && \
-    wget https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_runtime_r1.2.0_image_video.tar.gz -O vitis_ai_runtime_image_video.tar.gz && \
+    wget https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_runtime_r1.1_image_video.tar.gz -O vitis_ai_runtime_image_video.tar.gz && \
     tar xf vitis_ai_runtime_image_video.tar.gz -C VART && \
     rm vitis_ai_runtime_image_video.tar.gz
 
 # Vitis AI Library
-##RUN wget -O xilinx_model_zoo_u50.deb https://www.xilinx.com/bin/public/openDownload?filename=xilinx_model_zoo_u50_1.2.0_amd64.deb && \
-##    dpkg -i xilinx_model_zoo_u50.deb && \
-##    rm xilinx_model_zoo_u50.deb
-##
-##RUN wget https://www.xilinx.com/bin/public/openDownload?filename=xilinx_model_zoo_u50_pytorch_1.2.0_amd64.deb -O xilinx_model_zoo_u50_pytorch.deb && \
-##    dpkg -i xilinx_model_zoo_u50_pytorch.deb && \
-##    rm xilinx_model_zoo_u50_pytorch.deb
+RUN wget -O vitis-ai-runtime.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=vitis-ai-runtime-1.1.2.tar.gz && \
+    tar xf vitis-ai-runtime.tar.gz && \
+    sudo dpkg -i vitis-ai-runtime-1.1.2/Vitis-AI-Library/X86_64/libvitis_ai_library-*.deb && \
+    rm -r *.tar.gz vitis-ai-runtime-1.1.2
+
+RUN wget -O xilinx_model_zoo_u50.deb https://www.xilinx.com/bin/public/openDownload?filename=xilinx_model_zoo-1.1.0-Linux.deb && \
+    dpkg -i xilinx_model_zoo_u50.deb && \
+    rm xilinx_model_zoo_u50.deb
 
 RUN cd $VAI_ROOT/workspace && \
-    wget -O vitis_ai_library_images.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r1.2.0_images.tar.gz && \
-    wget -O vitis_ai_library_video.tar.gz   https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r1.2.0_video.tar.gz && \
+    wget -O vitis_ai_library_images.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r1.1_images.tar.gz && \
+    wget -O vitis_ai_library_video.tar.gz   https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r1.1_video.tar.gz && \
     tar xf vitis_ai_library_images.tar.gz -C Vitis-AI-Library/overview && \
     tar xf vitis_ai_library_video.tar.gz  -C Vitis-AI-Library/overview && \
     rm *.tar.gz

@@ -21,8 +21,8 @@ if [[ $user == "" ]] ; then
   name="no-user"
 fi
 
-repo=acri-as2
-tag=1
+repo=acri-as
+tag=latest
 #repo=ubuntu
 #tag=18.04
 #cmd="/bin/bash"
