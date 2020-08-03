@@ -132,6 +132,8 @@ docker run \
   -v $xrdp_ini:/etc/xrdp/xrdp.ini \
   -v $cur/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh \
   -e LOGIN_USER=$user \
+  -e LOGIN_USER_UID=$(id -u $user) \
+  -e LOGIN_USER_GID=$(id -g $user) \
   --device=$xclmgmt:$xclmgmt \
   --device=$xocl:$xocl \
   --cpus=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2))) \

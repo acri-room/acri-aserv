@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ $LOGIN_USER != "" ]] ; then
-  chown -hR $(id -u $LOGIN_USER):$(id -g $LOGIN_USER) /opt/vitis_ai/workspace
-fi
+chown -hR $LOGIN_USER_UID:$LOGIN_USER_GID /opt/vitis_ai/workspace
 
 /etc/init.d/rpcbind start
 ypbind -broadcast
