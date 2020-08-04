@@ -329,6 +329,18 @@ RUN cd $VAI_ROOT/workspace/alveo/apps/yolo && \
     find $VAI_ROOT/CK-TOOLS/dataset-coco-2014-val/val2014/ -name "*.jpg" | tail -25 | xargs cp -t test_image_set/ && \
     ls test_image_set | awk '{print $1 " " 0}' > images.txt
 
+# Fix
+RUN echo 'export VAI_ALVEO_ROOT=$VAI_ROOT/workspace/alveo' >> $VAI_ROOT/setup.sh
+
+# YOLO
+RUN cd $VAI_ROOT/workspace/alveo && \
+    wget https://www.xilinx.com/bin/public/openDownload?filename=models.caffe.yolov3_2019-11-26.zip -O temp.zip && \
+    unzip -o temp.zip && \
+    rm temp.zip && \
+    wget https://www.xilinx.com/bin/public/openDownload?filename=models.caffe.yolov2_2019-08-01.zip -O temp.zip && \
+    unzip -o temp.zip && \
+    rm temp.zip
+
 ###############################################################
 
 # xbutler (This should be the last)
