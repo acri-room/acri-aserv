@@ -138,6 +138,7 @@ docker run \
   --device=$xocl:$xocl \
   --cpus=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2))) \
   --memory 120g \
+  --shm-size=2g \
   $repo:$tag \
   > /dev/null
 

@@ -1,0 +1,63 @@
+diff --git a/Vitis-AI-Library/CMakeLists.txt b/Vitis-AI-Library/CMakeLists.txt
+index b732a910..6fb0aeb1 100644
+--- a/Vitis-AI-Library/CMakeLists.txt
++++ b/Vitis-AI-Library/CMakeLists.txt
+@@ -64,7 +64,7 @@ if(ENABLE_DPUCADX8G_RUNNER)
+     option(ENABLE_FACEDETECT "enable face detection" ON)
+     option(ENABLE_YOLOV3 "enable Yolov3" ON)
+     option(ENABLE_LANDMARK "enable landmark face-5pt" ON)
+-    option(ENABLE_REID "enable reid" ON)
++    option(ENABLE_REID "enable reid" OFF)
+ 
+     # Enable DPUV1 flag
+     add_definitions(-DENABLE_DPUCADX8G_RUNNER)
+diff --git a/Vitis-AI-Library/classification/src/classification_imp.cpp b/Vitis-AI-Library/classification/src/classification_imp.cpp
+index c9779766..50c05b41 100644
+--- a/Vitis-AI-Library/classification/src/classification_imp.cpp
++++ b/Vitis-AI-Library/classification/src/classification_imp.cpp
+@@ -144,9 +144,6 @@ vitis::ai::ClassificationResult ClassificationImp::run(
+       case 4:
+         inception_pt(input_image, height, width, image);
+         break;
+-      case 4:
+-        inception_pt(input_image, height, width, image);
+-        break;
+       default:
+         break;
+     }
+diff --git a/Vitis-AI-Library/cmake/XilinxCommon.cmake b/Vitis-AI-Library/cmake/XilinxCommon.cmake
+index 19851a64..fea78550 100644
+--- a/Vitis-AI-Library/cmake/XilinxCommon.cmake
++++ b/Vitis-AI-Library/cmake/XilinxCommon.cmake
+@@ -14,8 +14,8 @@
+ #
+ set (CMAKE_CXX_STANDARD 14)
+ set (CMAKE_C_STANDARD 99)
+-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror -ggdb -O0 -fno-inline -Wno-pessimizing-move")
+-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Werror -Wno-pessimizing-move")
++set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror -ggdb -O0 -fno-inline ")
++set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Werror ")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -Werror")
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
+ set(CMAKE_EXE "${CMAKE_C_FLAGS} -Wall -Werror")
+diff --git a/Vitis-AI-Library/xnnpp/CMakeLists.txt b/Vitis-AI-Library/xnnpp/CMakeLists.txt
+index 6b41ac53..eb8019ac 100644
+--- a/Vitis-AI-Library/xnnpp/CMakeLists.txt
++++ b/Vitis-AI-Library/xnnpp/CMakeLists.txt
+@@ -84,8 +84,6 @@ add_library(${COMPONENT_NAME} SHARED
+   src/yolov3.cpp
+   include/vitis/ai/nnpp/posedetect.hpp
+   src/posedetect.cpp
+-  include/vitis/ai/nnpp/reid.hpp
+-  src/reid.cpp
+   include/vitis/ai/nnpp/refinedet.hpp
+   src/refinedet/refinedet.cpp
+   src/refinedet/refine_det_post.cpp
+@@ -172,7 +170,6 @@ install(FILES
+   include/vitis/ai/nnpp/lanedetect.hpp
+   include/vitis/ai/nnpp/ssd.hpp
+   include/vitis/ai/nnpp/tfssd.hpp
+-  include/vitis/ai/nnpp/reid.hpp
+   include/vitis/ai/nnpp/medicalsegmentation.hpp
+   DESTINATION include/vitis/ai/nnpp)
+ 

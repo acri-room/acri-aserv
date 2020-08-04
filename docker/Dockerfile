@@ -233,9 +233,6 @@ RUN wget -O overlay.deb https://www.xilinx.com/bin/public/openDownload?filename=
 	  rm *.deb && \
     rm -rf /var/lib/apt/lists/*
 
-# xbutler
-RUN apt-get install -y $VAI_ROOT/workspace/alveo/packages/ubuntu/xbutler_3.0-2.deb & sleep 10
-
 COPY files/supervisor/xbutler.conf /etc/supervisor/conf.d
 
 # entry
@@ -248,20 +245,36 @@ RUN cd $VAI_ROOT/workspace && \
     rm vitis_ai_runtime_image_video.tar.gz
 
 # Vitis AI Library
-##RUN wget -O xilinx_model_zoo_u50.deb https://www.xilinx.com/bin/public/openDownload?filename=xilinx_model_zoo_u50_1.2.0_amd64.deb && \
-##    dpkg -i xilinx_model_zoo_u50.deb && \
-##    rm xilinx_model_zoo_u50.deb
-##
-##RUN wget https://www.xilinx.com/bin/public/openDownload?filename=xilinx_model_zoo_u50_pytorch_1.2.0_amd64.deb -O xilinx_model_zoo_u50_pytorch.deb && \
-##    dpkg -i xilinx_model_zoo_u50_pytorch.deb && \
-##    rm xilinx_model_zoo_u50_pytorch.deb
-
 RUN cd $VAI_ROOT/workspace && \
     wget -O vitis_ai_library_images.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r1.2.0_images.tar.gz && \
     wget -O vitis_ai_library_video.tar.gz   https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r1.2.0_video.tar.gz && \
     tar xf vitis_ai_library_images.tar.gz -C Vitis-AI-Library/overview && \
     tar xf vitis_ai_library_video.tar.gz  -C Vitis-AI-Library/overview && \
     rm *.tar.gz
+
+COPY files/vitis_ai_library.patch $VAI_ROOT/workspace/Vitis-AI-Library
+
+RUN cd $VAI_ROOT/workspace/Vitis-AI-Library && \
+    source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
+    conda activate vitis-ai-caffe && \
+    patch -p2 < vitis_ai_library.patch && \
+    ./cmake.sh --clean --type=release \
+      --build-dir=$VAI_ROOT/workspace/Vitis-AI-Library/build \
+      --install-prefix=$VAI_ROOT/workspace/Vitis-AI-Library/install \
+      --cmake-options=-DCMAKE_PREFIX_PATH=$CONDA_PREFIX \
+      --cmake-options=-DENABLE_DPUCADX8G_RUNNER=ON
+
+# Vitis AI setup file
+COPY files/vitis_ai/setup.sh $VAI_ROOT
+
+RUN echo 'source $VAI_ROOT/workspace/alveo/overlaybins/setup.sh'                                    >> $VAI_ROOT/setup.sh && \
+    echo 'export LD_LIBRARY_PATH=$VAI_ROOT/workspace/Vitis-AI-Library/install/lib:$LD_LIBRARY_PATH' >> $VAI_ROOT/setup.sh && \
+    echo 'export LD_LIBRARY_PATH=$VAI_ROOT/conda/envs/vitis-ai-tensorflow/lib:$LD_LIBRARY_PATH'     >> $VAI_ROOT/setup.sh
+
+RUN cd $VAI_ROOT/workspace && \
+    wget -O vai_lib_u200_u250_models.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=vai_lib_u200_u250_models.tar.gz && \
+    tar xf vai_lib_u200_u250_models.tar.gz --absolute-names && \
+    rm vai_lib_u200_u250_models.tar.gz
 
 # For xbutil validate
 RUN pip2 install pyopencl==2020.1 pytools==2020.2
@@ -273,15 +286,58 @@ RUN apt-get update -y && apt-get install -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
 
-# Vitis AI setup file
-COPY files/vitis_ai/setup.sh $VAI_ROOT
-
 # Fix no lsb message
 RUN apt-get update -y && apt-get install -y \
       lsb-core \
       && apt autoclean -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
+
+# Download ML models
+RUN echo 'export VAI_ALVEO_ROOT=$VAI_ROOT/alveo' >> $VAI_ROOT/setup.sh
+
+RUN cd $VAI_ROOT/workspace/alveo/examples/caffe && \
+    source $VAI_ROOT/setup.sh && \
+    conda activate vitis-ai-caffe && \
+    python getModels.py && \
+    python replace_mluser.py --modelsdir models
+    
+RUN cd $VAI_ROOT/workspace/alveo/examples/tensorflow && \
+    source $VAI_ROOT/setup.sh && \
+    conda activate vitis-ai-tensorflow && \
+    python getModels.py
+
+RUN source $VAI_ROOT/setup.sh && \
+    conda activate vitis-ai-caffe && \
+    python -m ck pull repo:ck-env && \
+    python -m ck install package:imagenet-2012-val-min && \
+    python -m ck install package:imagenet-2012-aux && \
+    mkdir -p $VAI_ROOT/CK-TOOLS && \
+    mv ~/CK-TOOLS/* $VAI_ROOT/CK-TOOLS
+
+RUN source $VAI_ROOT/setup.sh && \
+    conda activate vitis-ai-caffe && \
+    python -m ck pull repo:ck-env && \
+    python -m ck install package:dataset-coco-2014-val && \
+    mkdir -p $VAI_ROOT/CK-TOOLS && \
+    mv ~/CK-TOOLS/* $VAI_ROOT/CK-TOOLS
+
+RUN cd $VAI_ROOT/workspace/alveo/apps/yolo && \
+    wget -c https://pjreddie.com/media/files/coco/labels.tgz && \
+    tar xf labels.tgz labels/val2014 && \
+    mkdir -p test_image_set && \
+    find $VAI_ROOT/CK-TOOLS/dataset-coco-2014-val/val2014/ -name "*.jpg" | tail -25 | xargs cp -t test_image_set/ && \
+    ls test_image_set | awk '{print $1 " " 0}' > images.txt
+
+###############################################################
+
+# xbutler (This should be the last)
+RUN apt-get install -y $VAI_ROOT/workspace/alveo/packages/ubuntu/xbutler_3.0-2.deb & sleep 10
+
+## # Fix dpkg error
+## RUN rm -f /var/lib/apt/lists/lock && \
+##     rm -f /var/cache/apt/archives/lock && \
+##     rm -f /var/lib/dpkg/updates/*
 
 EXPOSE 22 3389
 
