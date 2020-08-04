@@ -136,13 +136,15 @@ RUN wget -O glog.0.4.0.tar.gz https://codeload.github.com/google/glog/tar.gz/v0.
     mkdir build && cd build && cmake -DBUILD_SHARED_LIBS=ON .. && make -j 12 && make install && rm -rf /tmp/*
 RUN wget https://codeload.github.com/google/protobuf/zip/v3.4.0 && \
     unzip v3.4.0 && cd protobuf-3.4.0 && ./autogen.sh && ./configure && make -j 12 && make install && ldconfig
-RUN wget https://github.com/opencv/opencv/archive/3.4.0.tar.gz && tar -xvf 3.4.0.tar.gz && \
-    cd opencv-3.4.0 && mkdir build && cd build && \
-    cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_FFMPEG=ON -D WITH_TBB=ON -D WITH_GTK=ON \
-      -D WITH_V4L=ON -D WITH_OPENGL=ON -D WITH_CUBLAS=ON -DWITH_QT=OFF -DCUDA_NVCC_FLAGS="-D_FORCE_INLINES" .. && \
-    make -j 12 && make install && ldconfig && rm -rf /tmp/*
 RUN wget http://launchpadlibrarian.net/436533799/libjson-c4_0.13.1+dfsg-4_amd64.deb && \
     dpkg -i libjson-c4_0.13.1+dfsg-4_amd64.deb && rm -rf /tmp/*
+
+# OpenCV
+RUN apt-get update -y && apt-get install -y \
+      $(apt-cache search opencv | grep 3.2 | grep dev | awk '{print $1}') \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
 
 # Env for Vitis AI
 ENV VAI_ROOT=/opt/vitis_ai
@@ -255,7 +257,25 @@ RUN cd $VAI_ROOT/workspace && \
     tar xf vitis_ai_library_video.tar.gz  -C Vitis-AI-Library/overview && \
     rm *.tar.gz
 
+# For xbutil validate
 RUN pip2 install pyopencl==2020.1 pytools==2020.2
+
+# Fix icon
+RUN apt-get update -y && apt-get install -y \
+      gnome-icon-theme \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
+
+# Vitis AI setup file
+COPY files/vitis_ai/setup.sh $VAI_ROOT
+
+# Fix no lsb message
+RUN apt-get update -y && apt-get install -y \
+      lsb-core \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 22 3389
 

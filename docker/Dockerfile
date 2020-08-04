@@ -263,7 +263,25 @@ RUN cd $VAI_ROOT/workspace && \
     tar xf vitis_ai_library_video.tar.gz  -C Vitis-AI-Library/overview && \
     rm *.tar.gz
 
+# For xbutil validate
 RUN pip2 install pyopencl==2020.1 pytools==2020.2
+
+# Fix icon
+RUN apt-get update -y && apt-get install -y \
+      gnome-icon-theme \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
+
+# Vitis AI setup file
+COPY files/vitis_ai/setup.sh $VAI_ROOT
+
+# Fix no lsb message
+RUN apt-get update -y && apt-get install -y \
+      lsb-core \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 22 3389
 

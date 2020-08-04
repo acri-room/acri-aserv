@@ -133,7 +133,22 @@ RUN wget -O u280-es1.deb https://www.xilinx.com/bin/public/openDownload?filename
 # entry
 COPY files/supervisor/entry.conf /etc/supervisor/conf.d
 
+# For xbutil validate
 RUN pip2 install pyopencl==2020.1 pytools==2020.2
+
+# Fix icon
+RUN apt-get update -y && apt-get install -y \
+      gnome-icon-theme \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
+
+# Fix no lsb message
+RUN apt-get update -y && apt-get install -y \
+      lsb-core \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 22 3389
 
