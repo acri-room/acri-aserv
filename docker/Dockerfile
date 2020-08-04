@@ -315,31 +315,31 @@ RUN source $VAI_ROOT/setup.sh && \
     mkdir -p $VAI_ROOT/CK-TOOLS && \
     mv ~/CK-TOOLS/* $VAI_ROOT/CK-TOOLS
 
-RUN source $VAI_ROOT/setup.sh && \
-    conda activate vitis-ai-caffe && \
-    python -m ck pull repo:ck-env && \
-    python -m ck install package:dataset-coco-2014-val && \
-    mkdir -p $VAI_ROOT/CK-TOOLS && \
-    mv ~/CK-TOOLS/* $VAI_ROOT/CK-TOOLS
+## RUN source $VAI_ROOT/setup.sh && \
+##     conda activate vitis-ai-caffe && \
+##     python -m ck pull repo:ck-env && \
+##     python -m ck install package:dataset-coco-2014-val && \
+##     mkdir -p $VAI_ROOT/CK-TOOLS && \
+##     mv ~/CK-TOOLS/* $VAI_ROOT/CK-TOOLS
 
-RUN cd $VAI_ROOT/workspace/alveo/apps/yolo && \
-    wget -c https://pjreddie.com/media/files/coco/labels.tgz && \
-    tar xf labels.tgz labels/val2014 && \
-    mkdir -p test_image_set && \
-    find $VAI_ROOT/CK-TOOLS/dataset-coco-2014-val/val2014/ -name "*.jpg" | tail -25 | xargs cp -t test_image_set/ && \
-    ls test_image_set | awk '{print $1 " " 0}' > images.txt
+## RUN cd $VAI_ROOT/workspace/alveo/apps/yolo && \
+##     wget -c https://pjreddie.com/media/files/coco/labels.tgz && \
+##     tar xf labels.tgz labels/val2014 && \
+##     mkdir -p test_image_set && \
+##     find $VAI_ROOT/CK-TOOLS/dataset-coco-2014-val/val2014/ -name "*.jpg" | tail -25 | xargs cp -t test_image_set/ && \
+##     ls test_image_set | awk '{print $1 " " 0}' > images.txt
 
 # Fix
 RUN echo 'export VAI_ALVEO_ROOT=$VAI_ROOT/workspace/alveo' >> $VAI_ROOT/setup.sh
 
-# YOLO
-RUN cd $VAI_ROOT/workspace/alveo && \
-    wget https://www.xilinx.com/bin/public/openDownload?filename=models.caffe.yolov3_2019-11-26.zip -O temp.zip && \
-    unzip -o temp.zip && \
-    rm temp.zip && \
-    wget https://www.xilinx.com/bin/public/openDownload?filename=models.caffe.yolov2_2019-08-01.zip -O temp.zip && \
-    unzip -o temp.zip && \
-    rm temp.zip
+## # YOLO
+## RUN cd $VAI_ROOT/workspace/alveo && \
+##     wget https://www.xilinx.com/bin/public/openDownload?filename=models.caffe.yolov3_2019-11-26.zip -O temp.zip && \
+##     unzip -o temp.zip && \
+##     rm temp.zip && \
+##     wget https://www.xilinx.com/bin/public/openDownload?filename=models.caffe.yolov2_2019-08-01.zip -O temp.zip && \
+##     unzip -o temp.zip && \
+##     rm temp.zip
 
 ###############################################################
 

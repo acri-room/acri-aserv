@@ -22,7 +22,7 @@ if [[ $user == "" ]] ; then
 fi
 
 repo=acri-as
-tag=24
+tag=latest
 #repo=ubuntu
 #tag=18.04
 #cmd="/bin/bash"
@@ -30,7 +30,7 @@ cmd="docker-entrypoint.sh"
 scratch_max_size=$((256*1024*1024*1024)) # 256GB
 
 container_exist=0
-if [[ $name != "maintenance" ]] ; then
+if [[ $name =~ ^user-.*$ ]] ; then
   # Check existing container and stop
   for id in $(docker ps -a --filter "name=user-" --format "{{.ID}}") ; do
     tmp=$(docker ps -a --filter "id=$id" --format "{{.Names}}")
@@ -64,7 +64,7 @@ fi
 echo Info: Start user container: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name
 
 # Clean
-if [[ $name != "maintenance" ]] ; then
+if [[ $name =~ ^user-.*$ ]] ; then
   # Clean scratch area
   mkdir -p /scratch
   while [ $(du -s /scratch | awk '{print $1}') -gt $scratch_max_size ] ; do
@@ -79,8 +79,8 @@ if [[ $name != "maintenance" ]] ; then
   rm -f /tmp/*.xrdp.ini
 
   # Reset FPGA
-  /usr/sbin/rmmod xclmgmt
-  /usr/sbin/rmmod xocl
+  /usr/sbin/rmmod xclmgmt || true
+  /usr/sbin/rmmod xocl || true
   /usr/sbin/modprobe xclmgmt
   /usr/sbin/modprobe xocl
   yes | /opt/xilinx/xrt/bin/xbutil reset > /dev/null
@@ -138,7 +138,8 @@ docker run \
   --device=$xocl:$xocl \
   --cpus=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2))) \
   --memory 120g \
+  --shm-size=2g \
   $repo:$tag \
-  $cmd > /dev/null
+  > /dev/null
 
 echo Info: Started
