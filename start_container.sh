@@ -30,7 +30,7 @@ cmd="docker-entrypoint.sh"
 scratch_max_size=$((256*1024*1024*1024)) # 256GB
 
 container_exist=0
-if [[ $name =~ ^user-.*$ ]] ; then
+if [[ $name =~ ^user-.*$ ]] || [[ $user == "" ]] ; then
   # Check existing container and stop
   for id in $(docker ps -a --filter "name=user-" --format "{{.ID}}") ; do
     tmp=$(docker ps -a --filter "id=$id" --format "{{.Names}}")
