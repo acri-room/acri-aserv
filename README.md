@@ -20,6 +20,14 @@ U200/U250搭載サーバー
 crontabファイルを参照
 ```
 
+Enable hardware profiling
+=========================
+
+```
+# cp 12-xocl-docker.rules /etc/udev/rules.d/12-xocl-docker.rule
+# udevadm control --reload-rules && udevadm trigger
+```
+
 ユーザーを指定して手動で起動する方法
 ===============
 ```

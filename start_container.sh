@@ -118,6 +118,11 @@ if [[ ! -e $xclmgmt ]] ; then
   exit 1
 fi
 
+devices=""
+for f in /dev/xfpga/* ; do
+  devices="$devices --device=$f"
+done
+
 docker run \
   -dit \
   --network net \
@@ -134,8 +139,10 @@ docker run \
   -e LOGIN_USER=$user \
   -e LOGIN_USER_UID=$(id -u $user) \
   -e LOGIN_USER_GID=$(id -g $user) \
-  --device=$xclmgmt:$xclmgmt \
-  --device=$xocl:$xocl \
+  --device=$xclmgmt \
+  --device=$xocl \
+  $devices \
+  -v /dev/xfpga:/dev/xfpga \
   --cpus=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2))) \
   --memory 120g \
   --shm-size=2g \

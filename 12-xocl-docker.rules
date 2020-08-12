@@ -1,0 +1,1 @@
+SUBSYSTEM=="xrt_user", RUN="/usr/bin/bash /root/acri-aserv/attach-device.sh $env{MAJOR} $env{MINOR}"
