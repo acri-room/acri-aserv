@@ -19,7 +19,9 @@ end
 
 table = {}
 
-t = Time.now
+t = Time.now + 30*60
+
+puts "Date: #{t.year}/#{t.month}/#{t.day}"
 
 ["as001", "as002", "as003", "as004", "ag001"].each do |host|
   url = "http://#{SERVER}/olb-view.cgi"
