@@ -17,23 +17,29 @@ U200/U250搭載サーバー
 # docker build -t acri-as:latest -f Dockerfile .
 
 # crontab -e
-start_container.shに渡す番号を変更すること
+crontabファイルを参照
 ```
 
 ユーザーを指定して手動で起動する方法
 ===============
 ```
 # ./start_container.sh as001 172.16.6.1 ando
-他のユーザーのコンテナが起動していたら停止する
+他のユーザーのコンテナが起動していたら落としてしまうので注意！
 ```
 
-Maintenance
-===========
+メンテナス方法
+===============
++ Dockerfileを編集する
++ acri-as:testでDockerイメージをビルドする
++ acri-as:testでDockerを起動し（今のところ手動で）動作を確認する
++ 問題なければacri-as:latestでビルドする（次回以降の起動時に新しいイメージが使われる）
+
+テスト
+======
 ```
-# ./start_container.sh as102 172.16.6.102 ando maintenance
+# ./start_container.sh as102 172.16.6.102 ando test
+4つ目の引数にコンテナの名前を指定する。
 IP:172.16.6.102でメンテナンス用のコンテナが起動する
 このスクリプト実行でユーザーコンテナの停止、スクラッチ領域の掃除、FPGAリセットは行われない（ユーザーが利用中でも影響しない）
 このコンテナはcronにより停止されない
-作業後に新しいtagでコミットして、start_container.sh内のtagを書き換える
-次回以降、コンテナが新しいイメージで起動する
 ```
