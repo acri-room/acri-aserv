@@ -150,7 +150,25 @@ RUN apt-get update -y && apt-get install -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
 
-EXPOSE 22 3389
+# VNC
+RUN apt-get update -y && apt-get install -y \
+      tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
+
+COPY files/xstartup /etc/vnc/xstartup
+COPY files/Xvnc-session /etc/X11/Xvnc-session
+COPY files/vnc.conf /etc/vnc.conf
+
+## # For docker image debug (test only)
+## RUN apt-get update -y && apt-get install -y \
+##       net-tools \
+##       && apt autoclean -y \
+##       && apt autoremove -y \
+##       && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 22 3389 5901
 
 CMD ["/usr/bin/supervisord"]
 

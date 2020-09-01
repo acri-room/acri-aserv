@@ -341,6 +341,24 @@ RUN echo 'export VAI_ALVEO_ROOT=$VAI_ROOT/workspace/alveo' >> $VAI_ROOT/setup.sh
 ##     unzip -o temp.zip && \
 ##     rm temp.zip
 
+# VNC
+RUN apt-get update -y && apt-get install -y \
+      tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
+
+COPY files/xstartup /etc/vnc/xstartup
+COPY files/Xvnc-session /etc/X11/Xvnc-session
+COPY files/vnc.conf /etc/vnc.conf
+
+## # For docker image debug (test only)
+## RUN apt-get update -y && apt-get install -y \
+##       net-tools \
+##       && apt autoclean -y \
+##       && apt autoremove -y \
+##       && rm -rf /var/lib/apt/lists/*
+
 ###############################################################
 
 # xbutler (This should be the last)
@@ -351,7 +369,7 @@ RUN apt-get install -y $VAI_ROOT/workspace/alveo/packages/ubuntu/xbutler_3.0-2.d
 ##     rm -f /var/cache/apt/archives/lock && \
 ##     rm -f /var/lib/dpkg/updates/*
 
-EXPOSE 22 3389
+EXPOSE 22 3389 5901
 
 CMD ["/usr/bin/supervisord"]
 
