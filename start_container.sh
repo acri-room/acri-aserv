@@ -22,7 +22,7 @@ if [[ $user == "" ]] ; then
 fi
 
 repo=acri-as
-tag=latest
+tag=${TAG:-"latest"}
 #repo=ubuntu
 #tag=18.04
 #cmd="/bin/bash"
@@ -129,6 +129,8 @@ docker run \
   --ip $ip \
   --name "$name" \
   --hostname $hostname \
+  --cap-add=SYS_PTRACE \
+  --security-opt="seccomp=unconfined" \
   -v /scratch/$user:/scratch \
   -v /home/$user:/home/$user \
   -v /tools:/tools \

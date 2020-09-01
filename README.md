@@ -39,13 +39,13 @@ Enable hardware profiling
 ===============
 + Dockerfileを編集する
 + acri-as:testでDockerイメージをビルドする
-+ acri-as:testでDockerを起動し（今のところ手動で）動作を確認する
++ TAG=testでDockerを起動し動作を確認する
 + 問題なければacri-as:latestでビルドする（次回以降の起動時に新しいイメージが使われる）
 
 テスト
 ======
 ```
-# ./start_container.sh as102 172.16.6.102 ando test
+# TAG=test ./start_container.sh as102 172.16.6.102 ando test
 4つ目の引数にコンテナの名前を指定する。
 IP:172.16.6.102でメンテナンス用のコンテナが起動する
 このスクリプト実行でユーザーコンテナの停止、スクラッチ領域の掃除、FPGAリセットは行われない（ユーザーが利用中でも影響しない）
