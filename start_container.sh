@@ -118,6 +118,12 @@ if [[ ! -e $xclmgmt ]] ; then
   exit 1
 fi
 
+xvc=$(ls -1 /dev/xvc_* | head -n 1)
+if [[ ! -e $xclmgmt ]] ; then
+  echo "Error: can't find xvc"
+  exit 1
+fi
+
 devices=""
 for f in /dev/xfpga/* ; do
   devices="$devices --device=$f"
@@ -143,6 +149,7 @@ docker run \
   -e LOGIN_USER_GID=$(id -g $user) \
   --device=$xclmgmt \
   --device=$xocl \
+  --device=$xvc \
   $devices \
   -v /dev/xfpga:/dev/xfpga \
   --cpus=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2))) \
