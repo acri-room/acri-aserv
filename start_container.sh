@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo Info: $(date)
+#echo Info: $(date)
 
 cur=$(dirname $(readlink -f $0))
 
@@ -17,7 +17,7 @@ ip=$1; shift
 user=${1:-$(ruby $cur/olb-read.rb $hostname)};
 name=${2:-"user-$user"};
 if [[ $user == "" ]] ; then
-  echo Info: No user for the next time slot
+  # echo Info: No user for the next time slot
   name="no-user"
 fi
 
@@ -35,15 +35,15 @@ if [[ $name =~ ^user-.*$ ]] || [[ $user == "" ]] ; then
   for id in $(docker ps -a --filter "name=user-" --format "{{.ID}}") ; do
     tmp=$(docker ps -a --filter "id=$id" --format "{{.Names}}")
     if [[ $tmp != "$name" ]] ; then
-      echo Info: Stop user container: id=$id, name=$tmp
+      echo Info: Stop user container: id=$id, name=$tmp, date=$(date)
       docker rm -f $id > /dev/null
     else
       stat=$(docker inspect --format='{{.State.Status}}' $id)
       if [[ $stat == "running" ]] ; then
-        echo Info: User container is already running: id=$id, name=$tmp
+        #echo Info: User container is already running: id=$id, name=$tmp
 	container_exist=1
       else
-        echo Info: Remove exited user container : id=$id, name=$tmp
+        echo Info: Remove exited user container : id=$id, name=$tmp, date=$(date)
 	docker rm -f $id > /dev/null
       fi
     fi
@@ -61,7 +61,7 @@ if [[ $user == "" ]] ; then
 fi
 
 # Start container
-echo Info: Start user container: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name
+echo Info: Start user container: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name, date=$(date)
 
 # Clean
 if [[ $name =~ ^user-.*$ ]] ; then
@@ -151,4 +151,4 @@ docker run \
   $repo:$tag \
   > /dev/null
 
-echo Info: Started
+echo Info: Started, date=$(date)
