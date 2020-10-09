@@ -352,6 +352,27 @@ COPY files/xstartup /etc/vnc/xstartup
 COPY files/Xvnc-session /etc/X11/Xvnc-session
 COPY files/vnc.conf /etc/vnc.conf
 
+ARG PLATFORM="xilinx_u200_xdma_201830_2"
+
+# Alveo-PYNQ
+RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
+    conda create -n pynq && \
+    conda activate pynq && \
+    python -m pip install --upgrade pip && \
+    pip3 install --use-feature=2020-resolver \
+      pynq \
+      pynq-alveo-examples \
+      pynq-compute-labs && \
+    cd /opt && \
+    yes | pynq get-notebooks --device $PLATFORM
+
+# Add packages here
+RUN apt-get update -y && apt-get install -y \
+      ffmpeg \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
+
 ## # For docker image debug (test only)
 ## RUN apt-get update -y && apt-get install -y \
 ##       net-tools \

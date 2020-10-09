@@ -13,8 +13,11 @@ U50搭載サーバー
 U280-ES1搭載サーバー
 # docker build -t acri-as:latest -f Dockerfile.u280-es1 .
 
-U200/U250搭載サーバー
+U200搭載サーバー
 # docker build -t acri-as:latest -f Dockerfile .
+
+U250搭載サーバー
+# docker build -t acri-as:latest -f Dockerfile --build-arg PLATFORM="xilinx_u250_xdma_201830_2" .
 
 # crontab -e
 crontabファイルを参照
