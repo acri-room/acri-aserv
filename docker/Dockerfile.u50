@@ -302,6 +302,10 @@ RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
     cd /opt && \
     yes | pynq get-notebooks --device $PLATFORM
 
+COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
+
+###############################################################
+
 # Add packages here
 RUN apt-get update -y && apt-get install -y \
       ffmpeg \
