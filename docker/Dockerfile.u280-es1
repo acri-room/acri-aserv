@@ -177,6 +177,7 @@ ARG PLATFORM="xilinx_u280-es1_xdma_201910_1"
 # Add packages here
 RUN apt-get update -y && apt-get install -y \
       ffmpeg \
+      gcc-multilib g++-multilib \
       && apt autoclean -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
