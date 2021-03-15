@@ -23,6 +23,10 @@ U250搭載サーバー
 crontabファイルを参照
 ```
 
+```
+# docker build -t acri-as-tool:latest -f Dockerfile.tool .
+```
+
 Enable hardware profiling
 =========================
 

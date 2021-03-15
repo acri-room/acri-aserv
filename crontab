@@ -3,3 +3,9 @@
 * * * * * /root/acri-aserv/start_container.sh as002 172.16.6.2 >> /var/log/aserv.log 2>&1
 * * * * * /root/acri-aserv/start_container.sh as003 172.16.6.3 >> /var/log/aserv.log 2>&1
 * * * * * /root/acri-aserv/start_container.sh as004 172.16.6.4 >> /var/log/aserv.log 2>&1
+
+*/10 * * * * /root/acri-aserv/start_container_tool.sh ag101 172.16.9.101 >> /var/log/aserv.ag101.log 2>&1
+*/10 * * * * /root/acri-aserv/start_container_tool.sh as101 172.16.6.101 >> /var/log/aserv.as101.log 2>&1
+*/10 * * * * /root/acri-aserv/start_container_tool.sh as102 172.16.6.102 >> /var/log/aserv.as102.log 2>&1
+*/10 * * * * /root/acri-aserv/start_container_tool.sh as103 172.16.6.103 >> /var/log/aserv.as103.log 2>&1
+*/10 * * * * /root/acri-aserv/start_container_tool.sh as104 172.16.6.104 >> /var/log/aserv.as104.log 2>&1
