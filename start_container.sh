@@ -92,6 +92,7 @@ ls /home/$user > /dev/null 2>&1 || true
 # Create scratch area
 mkdir -p /scratch/$user
 chown $user /scratch/$user
+chmod 700 /scratch/$user
 touch /scratch/$user/.start
 
 # Create sshd_config
