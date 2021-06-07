@@ -45,6 +45,17 @@ fi
 # Start container
 echo Info: Start tool container: image=$repo:$tag, hostname=$hostname, ip=$ip, name=$name, date=$(date)
 
+# Memory
+if [[ $mem == "" ]] ; then
+  mem=60
+fi
+
+# CPU
+if [[ $cpu == "" ]] ; then
+  # Default: Available cores / 2
+  cpu=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)/2)))
+fi
+
 docker run \
   -dit \
   --network net \
@@ -58,8 +69,8 @@ docker run \
   -v /tools:/tools \
   -v /opt/xilinx/platforms:/opt/xilinx/platforms \
   -v $cur/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh \
-  --cpus=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)/2))) \
-  --memory 64g \
+  --cpus=$cpu \
+  --memory ${mem}g \
   --shm-size=2g \
   $repo:$tag \
   > /dev/null

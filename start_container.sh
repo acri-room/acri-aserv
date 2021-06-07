@@ -130,6 +130,17 @@ for f in /dev/xfpga/* ; do
   devices="$devices --device=$f"
 done
 
+# Memory
+if [[ $mem == "" ]] ; then
+  mem=120
+fi
+
+# CPU
+if [[ $cpu == "" ]] ; then
+  # Default: Available cores - 2
+  cpu=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2)))
+fi
+
 docker run \
   -dit \
   --network net \
@@ -153,8 +164,8 @@ docker run \
   --device=$xvc \
   $devices \
   -v /dev/xfpga:/dev/xfpga \
-  --cpus=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2))) \
-  --memory 120g \
+  --cpus=$cpu \
+  --memory ${mem}g \
   --shm-size=2g \
   $repo:$tag \
   > /dev/null
