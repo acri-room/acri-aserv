@@ -174,6 +174,7 @@ RUN apt-get update -y && apt-get install -y \
       ffmpeg \
       gcc-multilib \
       g++-multilib \
+      pigz \
       && apt autoclean -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*

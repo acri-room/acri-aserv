@@ -51,4 +51,6 @@ update_repo github.com Xilinx HLS-Tiny-Tutorials
 update_repo github.com Xilinx PYNQ
 update_repo github.com Xilinx Alveo-PYNQ
 
+update_repo github.com anjn vlib-deflate-benchmark
+
 download_data http://sun.aei.polsl.pl/~sdeor/corpus/silesia.zip silesia.zip
