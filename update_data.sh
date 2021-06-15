@@ -52,5 +52,6 @@ update_repo github.com Xilinx PYNQ
 update_repo github.com Xilinx Alveo-PYNQ
 
 update_repo github.com anjn vlib-deflate-benchmark
+update_repo github.com kkos oniguruma
 
 download_data http://sun.aei.polsl.pl/~sdeor/corpus/silesia.zip silesia.zip
