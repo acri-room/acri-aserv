@@ -24,3 +24,10 @@ case $host in
     docker build -t acri-as:latest -f Dockerfile.u50 .
     ;;
 esac
+
+case $host in
+  aserv1 | aserv2 | aserv3 | aserv4 )
+    echo Tool
+    docker build -t acri-as-tool:latest -f Dockerfile.tool .
+    ;;
+esac
