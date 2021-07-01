@@ -162,6 +162,9 @@ COPY files/xstartup /etc/vnc/xstartup
 COPY files/Xvnc-session /etc/X11/Xvnc-session
 COPY files/vnc.conf /etc/vnc.conf
 
+# locale
+RUN locale-gen en_US.UTF-8
+
 ###############################################################
 
 # Add packages here

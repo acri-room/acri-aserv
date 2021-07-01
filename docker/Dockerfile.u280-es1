@@ -174,6 +174,9 @@ ARG PLATFORM="xilinx_u280-es1_xdma_201910_1"
 ##     cd /opt && \
 ##     yes | pynq get-notebooks --device $PLATFORM
 
+# locale
+RUN locale-gen en_US.UTF-8
+
 # Add packages here
 RUN apt-get update -y && apt-get install -y \
       ffmpeg \

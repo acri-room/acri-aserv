@@ -368,6 +368,9 @@ RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
 
 COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
 
+# locale
+RUN locale-gen en_US.UTF-8
+
 ###############################################################
 
 # Add packages here

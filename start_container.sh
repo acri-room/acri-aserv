@@ -141,6 +141,12 @@ if [[ $cpu == "" ]] ; then
   cpu=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2)))
 fi
 
+# for gserv1
+mounts=
+if [[ -e /tools2/Xilinx ]] ; then
+  mounts="$mounts -v /tools2/Xilinx:/tools2/Xilinx"
+fi
+
 docker run \
   -dit \
   --network net \
@@ -153,6 +159,7 @@ docker run \
   -v /home/$user:/home/$user \
   -v /tools:/tools \
   -v /opt/xilinx/platforms:/opt/xilinx/platforms \
+  $mounts \
   -v $sshd_config:/etc/ssh/sshd_config \
   -v $xrdp_ini:/etc/xrdp/xrdp.ini \
   -v $cur/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh \
