@@ -23,4 +23,4 @@ conda activate pynq
 rsync -ahvu --progress /opt/pynq-notebooks /scratch
 cd /scratch/pynq-notebooks
 
-jupyter lab --ip 0.0.0.0
+jupyter lab --ip 127.0.0.1
