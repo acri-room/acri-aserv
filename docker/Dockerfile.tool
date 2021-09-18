@@ -178,6 +178,7 @@ RUN apt-get update -y && apt-get install -y \
       gcc-multilib \
       g++-multilib \
       pigz \
+      libboost-dev \
       && apt autoclean -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
