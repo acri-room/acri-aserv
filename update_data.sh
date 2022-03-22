@@ -50,6 +50,16 @@ update_repo github.com Xilinx HLS
 update_repo github.com Xilinx HLS-Tiny-Tutorials
 update_repo github.com Xilinx PYNQ
 update_repo github.com Xilinx Alveo-PYNQ
+update_repo github.com Xilinx Vitis-HLS-Introductory-Examples
+update_repo github.com Xilinx inference-server
+update_repo github.com Xilinx rt-engine
+update_repo github.com Xilinx pyxir
+update_repo github.com Xilinx finn-base
+update_repo github.com Xilinx finn
+update_repo github.com Xilinx finn-hlslib
+update_repo github.com Xilinx brevitas
+update_repo github.com Xilinx HPC
+update_repo github.com Xilinx ACCL
 
 update_repo github.com anjn vlib-deflate-benchmark
 update_repo github.com kkos oniguruma

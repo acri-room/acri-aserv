@@ -83,7 +83,9 @@ if [[ $name =~ ^user-.*$ ]] ; then
   /usr/sbin/rmmod xocl || true
   /usr/sbin/modprobe xclmgmt
   /usr/sbin/modprobe xocl
-  yes | /opt/xilinx/xrt/bin/xbutil reset > /dev/null
+  for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
+    yes | /opt/xilinx/xrt/bin/xbutil reset --device $addr > /dev/null
+  done
 fi
 
 # Mount user home
@@ -106,7 +108,7 @@ chmod 644 $xrdp_ini
 sed "s/%USER%/$user/" $cur/xrdp.ini.base > $xrdp_ini
 
 # Find driver
-xocl=$(/opt/xilinx/xrt/bin/xbutil scan | grep "xilinx_u" | sed -r 's/^.*inst=([0-9]*).*/\1/')
+xocl=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_u" | sed -r 's/^.*inst=([0-9]*).*/\1/')
 xocl="/dev/dri/renderD$xocl"
 if [[ ! -e $xocl ]] ; then
   echo "Error: can't find xocl"
