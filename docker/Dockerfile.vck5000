@@ -116,23 +116,6 @@ RUN locale-gen en_US.UTF-8
        setuptools \
        wheel
 
-RUN mkdir -p /var/run/sshd /var/run/dbus
-
-# nis
-## COPY files/yp.conf /etc/yp.conf
-## COPY files/nsswitch.conf /etc/nsswitch.conf
-
-# supervisor
-COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY files/supervisor/xrm.conf /etc/supervisor/conf.d
-COPY files/supervisor/entry.conf /etc/supervisor/conf.d
-
-# xrdp/vnc
-COPY files/startwm.sh /etc/xrdp/startwm.sh
-COPY files/xstartup /etc/vnc/xstartup
-COPY files/Xvnc-session /etc/X11/Xvnc-session
-COPY files/vnc.conf /etc/vnc.conf
-
 # Install XRT
 WORKDIR /tmp
 RUN wget -O xrt.deb 'https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.447_18.04-amd64-xrt.deb' && \
@@ -506,31 +489,50 @@ RUN echo 'alias select-dpu="source $VAI_ROOT/select-dpu-vck5000.sh"' >> $VAI_ROO
 RUN rm -rf /tmp/*
 
 ## # Alveo-PYNQ
-## RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
-##     conda create -n pynq && \
-##     conda activate pynq && \
-##     python -m pip install --upgrade pip && \
-##     pip3 install --use-feature=2020-resolver \
-##       pynq \
-##       pynq-alveo-examples \
-##       pynq-compute-labs && \
-##     cd /opt && \
-##     yes | pynq get-notebooks --device $PLATFORM
-## 
-## COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
+RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
+    conda create -n pynq && \
+    conda activate pynq && \
+    python3 -m pip install --upgrade pip && \
+    pip3 install --use-feature=2020-resolver \
+      pynq \
+      pynq-alveo-examples \
+      pynq-compute-labs
+
+COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
+
+###############################################################
+
+RUN mkdir -p /var/run/sshd /var/run/dbus
+
+# supervisor
+COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY files/supervisor/xrm.conf /etc/supervisor/conf.d
+COPY files/supervisor/entry.conf /etc/supervisor/conf.d
+
+# xrdp/vnc
+COPY files/startwm.sh /etc/xrdp/startwm.sh
+COPY files/xstartup /etc/vnc/xstartup
+COPY files/Xvnc-session /etc/X11/Xvnc-session
+COPY files/vnc.conf /etc/vnc.conf
+
+# nis
+COPY files/yp.conf /etc/yp.conf
+COPY files/nsswitch.conf /etc/nsswitch.conf
+
+# Tool license
+RUN echo "export XILINXD_LICENSE_FILE=2100@172.16.6.205" >> /etc/profile
 
 ###############################################################
 
 # Add packages here
 RUN apt-get update -y && apt-get install -y \
       peco \
+      libcanberra-gtk* \
       && apt autoclean -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
 
 ###############################################################
-
-RUN useradd -ms /bin/bash x
 
 EXPOSE 22 3389 5901
 

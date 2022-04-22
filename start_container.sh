@@ -1,19 +1,34 @@
 #!/usr/bin/env bash
-set -e
 
-#echo Info: $(date)
-
-cur=$(dirname $(readlink -f $0))
-
-# Get ID
+# Usage
 if [[ $# -lt 2 ]] ; then
   echo Usage: $0 HOSTNAME IP [USER [NAME]]
   exit 1
 fi
+
+# Arguments
 hostname=$1; shift
 ip=$1; shift
 
+# Lock
+lockfile=/tmp/$hostname.lock
+mkdir $lockfile > /dev/null 2>&1
+if [ $? -ne 0 ] ; then
+  #echo lock fail
+  exit 1
+fi
+function error_handler() {
+  #echo error handler
+  rmdir $lockfile
+  exit 1
+}
+trap error_handler ERR
+
+# Exit on error
+set -e
+
 # Get user
+cur=$(dirname $(readlink -f $0))
 user=${1:-$(ruby $cur/olb-read.rb $hostname)};
 name=${2:-"user-$user"};
 if [[ $user == "" ]] ; then
@@ -83,8 +98,11 @@ if [[ $name =~ ^user-.*$ ]] ; then
   /usr/sbin/rmmod xocl || true
   /usr/sbin/modprobe xclmgmt
   /usr/sbin/modprobe xocl
+  for addr in $(lspci -D -d 10ee: -s .0 | awk '{print $1}') ; do
+    /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
+  done
   for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
-    yes | /opt/xilinx/xrt/bin/xbutil reset --device $addr > /dev/null
+    /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
   done
 fi
 
@@ -108,7 +126,7 @@ chmod 644 $xrdp_ini
 sed "s/%USER%/$user/" $cur/xrdp.ini.base > $xrdp_ini
 
 # Find driver
-xocl=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_u" | sed -r 's/^.*inst=([0-9]*).*/\1/')
+xocl=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
 xocl="/dev/dri/renderD$xocl"
 if [[ ! -e $xocl ]] ; then
   echo "Error: can't find xocl"
@@ -121,10 +139,11 @@ if [[ ! -e $xclmgmt ]] ; then
   exit 1
 fi
 
-xvc=$(ls -1 /dev/xvc_* | head -n 1)
-if [[ ! -e $xclmgmt ]] ; then
-  echo "Error: can't find xvc"
-  exit 1
+xvc=$(ls -1 /dev/xvc_* 2> /dev/null | head -n 1)
+if [[ ! -e $xvc ]] ; then
+  xvc=
+else
+  xvc="--device=$xvc"
 fi
 
 devices=""
@@ -170,7 +189,7 @@ docker run \
   -e LOGIN_USER_GID=$(id -g $user) \
   --device=$xclmgmt \
   --device=$xocl \
-  --device=$xvc \
+  $xvc \
   $devices \
   -v /dev/xfpga:/dev/xfpga \
   --cpus=$cpu \
@@ -180,3 +199,5 @@ docker run \
   > /dev/null
 
 echo Info: Started, date=$(date)
+
+rmdir $lockfile

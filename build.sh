@@ -23,10 +23,14 @@ case $host in
     echo U50
     docker build -t acri-as:latest -f Dockerfile.u50 .
     ;;
+  aserv5 )
+    echo VCK5000
+    docker build -t acri-as:latest -f Dockerfile.vck5000 .
+    ;;
 esac
 
 case $host in
-  aserv1 | aserv2 | aserv3 | aserv4 )
+  aserv1 | aserv2 | aserv3 | aserv4 | aserv5 )
     echo Tool
     docker build -t acri-as-tool:latest -f Dockerfile.tool .
     ;;
