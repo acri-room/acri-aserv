@@ -23,11 +23,15 @@ RUN apt-get update -y && apt-get install -y \
       dbus-x11 \
       dstat \
       emacs \
+      ffmpeg \
       firefox \
       g++ \
+      gcc-multilib g++-multilib \
       git \
+      gnome-icon-theme \
       gnuplot \
       graphviz \
+      gtkterm \
       gtkwave \
       htop \
       ibus-mozc \
@@ -40,29 +44,36 @@ RUN apt-get update -y && apt-get install -y \
       libavcodec-dev \
       libavdevice-dev \
       libavformat-dev \
+      libboost-dev \
       libgflags-dev \
       libgl1-mesa-dri \
       libgnome2-bin \
       libgoogle-glog-dev \
+      libgraphviz-dev \
       libgtk2.0-dev \
       libjson-c-dev \
       libtool\
       libunwind-dev \
+      lsb-core \
+      lv \
       make \
       mesa-utils \
       nis \
       opencl-headers \
       openssh-server \
+      pigz \
       python3-minimal \
       python3-opencv \
       python3-pip \
       python3-setuptools \
       python3-venv \
       ruby \
+      ruby-dev \
       software-properties-common \
       supervisor \
       sysstat \
       tig \
+      tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension \
       tmux \
       tree \
       ttf-ubuntu-font-family \
@@ -70,6 +81,7 @@ RUN apt-get update -y && apt-get install -y \
       unity \
       unzip \
       valgrind \
+      verilator \
       vim \
       wget \
       x11-utils \
@@ -80,18 +92,6 @@ RUN apt-get update -y && apt-get install -y \
       zenity \
       zsh \
       zstd \
-      gtkterm \
-      libgraphviz-dev \
-      lv \
-      ruby-dev \
-      verilator \
-      gnome-icon-theme \
-      lsb-core \
-      tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension \
-      ffmpeg \
-      gcc-multilib g++-multilib \
-      pigz \
-      libboost-dev \
       && apt autoclean -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*

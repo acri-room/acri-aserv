@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -ex
 
-pushd docker
-docker build -t acri-as:latest -f Dockerfile.vck5000 .
-popd
+#pushd docker
+#docker build -t acri-as:latest -f Dockerfile.vck5000 .
+#popd
 
 #echo Info: $(date)
 
@@ -27,6 +27,8 @@ fi
 repo=acri-as
 tag=${TAG:-"latest"}
 cmd="docker-entrypoint.sh"
+
+docker rm -f $name || true
 
 # Start container
 echo Info: Start user container: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name, date=$(date)
@@ -61,14 +63,14 @@ chmod 700 /scratch/$user
 touch /scratch/$user/.start
 
 # Create sshd_config
-sshd_config=$(mktemp --suffix=.sshd_config)
-cp $cur/sshd_config.base $sshd_config
-echo AllowUsers $user >> $sshd_config
+#sshd_config=$(mktemp --suffix=.sshd_config)
+#cp $cur/sshd_config.base $sshd_config
+#echo AllowUsers $user >> $sshd_config
 
 # Create xrdp.ini
-xrdp_ini=$(mktemp --suffix=.xrdp.ini)
-chmod 644 $xrdp_ini
-sed "s/%USER%/$user/" $cur/xrdp.ini.base > $xrdp_ini
+#xrdp_ini=$(mktemp --suffix=.xrdp.ini)
+#chmod 644 $xrdp_ini
+#sed "s/%USER%/$user/" $cur/xrdp.ini.base > $xrdp_ini
 
 # Find driver
 xocl=$(basename $(ls -d /sys/bus/pci/devices/$phys_addr/drm/renderD*))
@@ -116,6 +118,7 @@ docker run \
   -dit \
   --name "$name" \
   --hostname $hostname \
+  --network host \
   --cap-add=SYS_PTRACE \
   --security-opt="seccomp=unconfined" \
   -v /scratch/$user:/scratch \
@@ -123,12 +126,10 @@ docker run \
   -v /tools:/tools \
   -v /opt/xilinx/platforms:/opt/xilinx/platforms \
   $mounts \
-  -v $sshd_config:/etc/ssh/sshd_config \
-  -v $xrdp_ini:/etc/xrdp/xrdp.ini \
   -v $cur/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh \
   -e LOGIN_USER=$user \
-  -e LOGIN_USER_UID=$(id -u $user) \
-  -e LOGIN_USER_GID=$(id -g $user) \
+  -e LOGIN_USER_UID=1000 \
+  -e LOGIN_USER_GID=1000 \
   --device=$xclmgmt \
   --device=$xocl \
   $devices \

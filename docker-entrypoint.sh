@@ -4,3 +4,5 @@ test -e /opt/vitis_ai/workspace && chown -hR $LOGIN_USER_UID:$LOGIN_USER_GID /op
 test -e /opt/vitis_ai/CK-TOOLS  && chown -hR $LOGIN_USER_UID:$LOGIN_USER_GID /opt/vitis_ai/CK-TOOLS
 test -e /opt/vitis_ai/conda/bin && chown -hR $LOGIN_USER_UID:$LOGIN_USER_GID /opt/vitis_ai/conda/bin
 test -e /opt/pynq-notebooks     && chown -hR $LOGIN_USER_UID:$LOGIN_USER_GID /opt/pynq-notebooks
+
+true
