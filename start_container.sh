@@ -17,12 +17,11 @@ if [ $? -ne 0 ] ; then
   #echo lock fail
   exit 1
 fi
-function error_handler() {
-  #echo error handler
+function exit_handler() {
   rmdir $lockfile
   exit 1
 }
-trap error_handler ERR
+trap exit_handler ERR EXIT
 
 # Exit on error
 set -e
@@ -199,5 +198,3 @@ docker run \
   > /dev/null
 
 echo Info: Started, date=$(date)
-
-rmdir $lockfile
