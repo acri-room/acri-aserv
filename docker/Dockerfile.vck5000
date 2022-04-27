@@ -563,7 +563,9 @@ RUN wget https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_librar
 COPY files/vitis_ai/setup.sh $VAI_ROOT
 
 COPY files/vitis_ai/select-dpu-vck5000.sh $VAI_ROOT
+COPY files/vitis_ai/demo-vai-vck5000.sh $VAI_ROOT
 RUN echo 'alias select-dpu="source $VAI_ROOT/select-dpu-vck5000.sh"' >> $VAI_ROOT/setup.sh
+RUN echo 'alias demo-vai="bash $VAI_ROOT/demo-vai-vck5000.sh"' >> $VAI_ROOT/setup.sh
 
 ##===========================================================================
 ## vai_20
