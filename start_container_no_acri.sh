@@ -15,7 +15,7 @@ repo=acri-as
 tag=${TAG:-"latest"}
 cmd="docker-entrypoint.sh"
 
-#docker rm -f $name || true
+docker rm -f $name || true
 
 # Start container
 echo Info: Start user container: image=$repo:$tag, hostname=$hostname, user=$user, name=$name, date=$(date)
@@ -23,19 +23,19 @@ echo Info: Start user container: image=$repo:$tag, hostname=$hostname, user=$use
 phys_addr=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_[uv]" | sed -r 's/.*\[([0-9:.]+).*/\1/')
 
 # Clean
-if [[ $name =~ ^user-.*$ ]] ; then
-  # Reset FPGA
-  sudo rmmod xclmgmt || true
-  sudo rmmod xocl || true
-  sudo modprobe xclmgmt
-  sudo modprobe xocl
-  for addr in $(lspci -D -d 10ee: -s .0 | awk '{print $1}') ; do
-    sudo /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
-  done
-  for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
-    sudo /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
-  done
-fi
+#if [[ $name =~ ^user-.*$ ]] ; then
+#  # Reset FPGA
+#  sudo rmmod xclmgmt || true
+#  sudo rmmod xocl || true
+#  sudo modprobe xclmgmt
+#  sudo modprobe xocl
+#  for addr in $(lspci -D -d 10ee: -s .0 | awk '{print $1}') ; do
+#    sudo /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
+#  done
+#  for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
+#    sudo /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
+#  done
+#fi
 
 # Find driver
 xocl=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
