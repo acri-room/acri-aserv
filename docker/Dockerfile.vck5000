@@ -150,6 +150,8 @@ ARG PLATFORM_TAR_GZ_URL
 # U50     : https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50_2021.2_2021_1021_1001-all.deb.tar.gz
 # VCK5000 : https://www.xilinx.com/bin/public/openDownload?filename=xilinx-vck5000-prod-gen3x16-platform-1-0_all.deb.tar.gz
 
+ARG PLATFORM_DEB_URL
+
 SHELL ["/bin/bash", "-c"]
 
 WORKDIR /tmp
@@ -167,7 +169,7 @@ RUN test -n "$XRT_PACKAGE_URL" && \
     rm -rf ./xrt.deb || \
     true
 
-# Install Deployment Platform
+# Install Deployment Platform (tar.gz)
 RUN test -n "$PLATFORM_TAR_GZ_URL" && \
     wget -O platform.tar.gz "$PLATFORM_TAR_GZ_URL" && \
     mkdir platform && cd platform && tar xf ../platform.tar.gz && \
@@ -177,10 +179,22 @@ RUN test -n "$PLATFORM_TAR_GZ_URL" && \
     rm -rf ./platform.tar.gz ./platform || \
     true
 
+# Install Deployment Platform (deb)
+RUN test -n "$PLATFORM_DEB_URL" && \
+    wget -O platform.deb "$PLATFORM_DEB_URL" && \
+    apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y ./platform.deb && \
+    rm ./platform.deb || \
+    true
+
 ##===========================================================================
 ## dev_{card}
 ##===========================================================================
 
+FROM dev_base AS dev_u200
+FROM dev_base AS dev_u250
+FROM dev_base AS dev_u280es1
 FROM dev_base AS dev_u50
 FROM dev_base AS dev_vck5000
 

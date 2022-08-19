@@ -93,16 +93,18 @@ if [[ $name =~ ^user-.*$ ]] ; then
   rm -f /tmp/*.xrdp.ini
 
   # Reset FPGA
-  #/usr/sbin/rmmod xocl || true
-  #/usr/sbin/rmmod xclmgmt || true
-  #/usr/sbin/modprobe xclmgmt
-  #for addr in $(lspci -D -d 10ee: -s .0 | awk '{print $1}') ; do
-  #  /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
-  #done
-  #/usr/sbin/modprobe xocl
-  #for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
-  #  /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
-  #done
+  if [[ $(hostname -s) != aserv5 ]] ; then
+    /usr/sbin/rmmod xocl || true
+    /usr/sbin/rmmod xclmgmt || true
+    /usr/sbin/modprobe xclmgmt
+    for addr in $(lspci -D -d 10ee: -s .0 | awk '{print $1}') ; do
+      /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
+    done
+    /usr/sbin/modprobe xocl
+    for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
+      /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
+    done
+  fi
 fi
 
 # Mount user home
