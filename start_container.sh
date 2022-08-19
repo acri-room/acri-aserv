@@ -55,10 +55,10 @@ if [[ $name =~ ^user-.*$ ]] || [[ $user == "" ]] ; then
       stat=$(docker inspect --format='{{.State.Status}}' $id)
       if [[ $stat == "running" ]] ; then
         #echo Info: User container is already running: id=$id, name=$tmp
-	container_exist=1
+        container_exist=1
       else
         echo Info: Remove exited user container : id=$id, name=$tmp, date=$(date)
-	docker rm -f $id > /dev/null
+        docker rm -f $id > /dev/null
       fi
     fi
   done
