@@ -215,6 +215,9 @@ RUN wget -O xrm.deb "$XRM_PACKAGE_URL" && \
     apt-get install -y ./xrm.deb && \
     rm -rf ./xrm.deb
 
+EXPOSE 9763
+COPY files/supervisor/xrm.conf /etc/supervisor/conf.d
+
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
         apt-transport-https \
@@ -519,8 +522,10 @@ RUN apt-get clean -y \
     && rm -rf /scratch/*
 
 # Vitis AI GitHub
-RUN cd $VAI_ROOT && \
-    git clone https://github.com/Xilinx/Vitis-AI.git workspace
+RUN cd $VAI_ROOT \
+    && git clone https://github.com/Xilinx/Vitis-AI.git workspace \
+    && cd workspace \
+    && git checkout 2.0
 
 ##===========================================================================
 ## vai_20_vck5000
@@ -624,8 +629,6 @@ RUN echo "Port $SSHD_PORT" >> /etc/ssh/sshd_config
 
 # sshd
 EXPOSE $SSHD_PORT
-# xrm
-EXPOSE 9763
 
 ##===========================================================================
 ## user
@@ -639,7 +642,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # supervisor
 COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY files/supervisor/xrm.conf /etc/supervisor/conf.d
 COPY files/supervisor/entry.conf /etc/supervisor/conf.d
 
 # xrdp/vnc
@@ -657,9 +659,16 @@ RUN rm -rf /var/run/dbus/pid
 RUN apt-get update -y && apt-get install -y \
       gnupg2 \
       pass \
+      libfdt1 \
       && apt autoclean -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install \
+      jupyterlab
+
+RUN echo "dash dash/sh boolean false" | debconf-set-selections \
+    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash || true
 
 ###############################################################
 

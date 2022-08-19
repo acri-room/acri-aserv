@@ -24,7 +24,7 @@ function update_repo {
   else
     pushd $r_dir > /dev/null
     echo -n "  "
-    git pull
+    git pull --all
     popd > /dev/null
   fi
 }
@@ -61,6 +61,7 @@ update_repo github.com Xilinx brevitas
 update_repo github.com Xilinx HPC
 update_repo github.com Xilinx ACCL
 
+update_repo github.com acri-room aie-tutorial
 update_repo github.com anjn vlib-deflate-benchmark
 update_repo github.com kkos oniguruma
 

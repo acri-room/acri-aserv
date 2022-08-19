@@ -15,11 +15,11 @@ lockfile=/tmp/$hostname.lock
 mkdir $lockfile > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
   #echo lock fail
-  exit 1
+  exit
 fi
 function exit_handler() {
   rmdir $lockfile
-  exit 1
+  exit
 }
 trap exit_handler ERR EXIT
 
@@ -93,16 +93,16 @@ if [[ $name =~ ^user-.*$ ]] ; then
   rm -f /tmp/*.xrdp.ini
 
   # Reset FPGA
-  /usr/sbin/rmmod xclmgmt || true
-  /usr/sbin/rmmod xocl || true
-  /usr/sbin/modprobe xclmgmt
-  /usr/sbin/modprobe xocl
-  for addr in $(lspci -D -d 10ee: -s .0 | awk '{print $1}') ; do
-    /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
-  done
-  for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
-    /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
-  done
+  #/usr/sbin/rmmod xocl || true
+  #/usr/sbin/rmmod xclmgmt || true
+  #/usr/sbin/modprobe xclmgmt
+  #for addr in $(lspci -D -d 10ee: -s .0 | awk '{print $1}') ; do
+  #  /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
+  #done
+  #/usr/sbin/modprobe xocl
+  #for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
+  #  /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
+  #done
 fi
 
 # Mount user home
@@ -165,6 +165,11 @@ fi
 mounts=
 if [[ -e /tools2/Xilinx ]] ; then
   mounts="$mounts -v /tools2/Xilinx:/tools2/Xilinx"
+fi
+
+# for aserv5
+if [[ -e /data ]] ; then
+  mounts="$mounts -v /data:/data"
 fi
 
 docker run \
