@@ -14,7 +14,7 @@ function build() {
 #  --build-arg HTTP_PROXY=http://192.168.1.200:3128 \
 #  --build-arg HTTPS_PROXY=http://192.168.1.200:3128 \
 
-  echo docker buildx build \
+  docker buildx build \
     --build-arg CARD=$card \
     --build-arg ENABLE_VAI=$vai \
     --build-arg ACRI=$acri \
@@ -43,6 +43,7 @@ case $host in
     vai=no
     xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
     platform_deb="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u200-xdma-201830.2-2580015_18.04.deb"
+    build
     ;;
   aserv2 )
     echo U250
@@ -50,6 +51,7 @@ case $host in
     vai=no
     xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
     platform_deb="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u250-xdma-201830.2-2580015_18.04.deb"
+    build
     ;;
   aserv3 )
     echo U280-ES1
@@ -57,6 +59,7 @@ case $host in
     vai=no
     xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
     platform_deb="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u280-es1-xdma-201910.1-2579327_18.04.deb"
+    build
     ;;
   aserv4 )
     echo U50
@@ -64,6 +67,7 @@ case $host in
     vai=no
     xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
     platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50_2021.2_2021_1021_1001-all.deb.tar.gz"
+    build
     ;;
   aserv5 )
     echo VCK5000
@@ -93,8 +97,3 @@ case $host in
     build
     ;;
 esac
-
-if [[ $(hostname -s) != aserv1 ]] ; then
-  echo host is not aserv1
-fi
-

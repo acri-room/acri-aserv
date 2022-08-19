@@ -21,6 +21,22 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # Unminimize
 RUN apt-get update -y && yes | unminimize
 
+# Install python
+RUN apt-get update -y && apt-get install -y \
+      python3.8 \
+      python3.8-dev \
+      python3.8-minimal \
+      python3.8-venv \
+      python3-opencv \
+      python3-pip \
+      python3-setuptools \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
+
+# Update pip
+RUN python3 -m pip install -U pip
+
 # Install desktop
 RUN apt-get update -y && apt-get install -y \
       autoconf \
@@ -82,11 +98,6 @@ RUN apt-get update -y && apt-get install -y \
       openssh-server \
       peco \
       pigz \
-      python3-minimal \
-      python3-opencv \
-      python3-pip \
-      python3-setuptools \
-      python3-venv \
       ruby \
       ruby-dev \
       socat \

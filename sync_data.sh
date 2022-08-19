@@ -11,7 +11,7 @@ function sync_dir {
 eval $(ssh-agent)
 ssh-add ~/.ssh/id_rsa
 
-for t in aserv2 aserv3 aserv4 gserv1; do
+for t in aserv2 aserv3 aserv4 aserv5 gserv1; do
   sync_dir $t /tools/repo
   sync_dir $t /tools/data
 done

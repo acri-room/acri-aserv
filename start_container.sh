@@ -18,6 +18,7 @@ if [ $? -ne 0 ] ; then
   exit
 fi
 function exit_handler() {
+  #echo exit handler
   rmdir $lockfile
   exit
 }
@@ -97,11 +98,17 @@ if [[ $name =~ ^user-.*$ ]] ; then
     /usr/sbin/rmmod xocl || true
     /usr/sbin/rmmod xclmgmt || true
     /usr/sbin/modprobe xclmgmt
-    for addr in $(lspci -D -d 10ee: -s .0 | awk '{print $1}') ; do
+
+    LSPCI=/usr/bin/lspci
+    if [[ ! -e $LSPCI ]] ; then
+      LSPCI=/usr/sbin/lspci
+    fi
+
+    for addr in $($LSPCI -D -d 10ee: -s .0 | awk '{print $1}') ; do
       /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
     done
     /usr/sbin/modprobe xocl
-    for addr in $(lspci -D -d 10ee: -s .1 | awk '{print $1}') ; do
+    for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
       /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
     done
   fi
