@@ -1,4 +1,14 @@
-FROM ubuntu:18.04
+ARG CARD=${CARD:-no}
+ARG ENABLE_VAI=${ENABLE_VAI:-no}
+ARG ACRI=${ACRI:-no}
+
+ARG PLATFORM
+
+##===========================================================================
+## ubuntu_base
+##===========================================================================
+
+FROM ubuntu:18.04 as ubuntu_base
 
 SHELL ["/bin/bash", "-c"]
 
@@ -10,6 +20,22 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Unminimize
 RUN apt-get update -y && yes | unminimize
+
+# Install python
+RUN apt-get update -y && apt-get install -y \
+      python3.8 \
+      python3.8-dev \
+      python3.8-minimal \
+      python3.8-venv \
+      python3-opencv \
+      python3-pip \
+      python3-setuptools \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
+
+# Update pip
+RUN python3 -m pip install -U pip
 
 # Install desktop
 RUN apt-get update -y && apt-get install -y \
@@ -23,11 +49,15 @@ RUN apt-get update -y && apt-get install -y \
       dbus-x11 \
       dstat \
       emacs \
+      ffmpeg \
       firefox \
       g++ \
+      gcc-multilib g++-multilib \
       git \
+      gnome-icon-theme \
       gnuplot \
       graphviz \
+      gtkterm \
       gtkwave \
       htop \
       ibus-mozc \
@@ -35,34 +65,49 @@ RUN apt-get update -y && apt-get install -y \
       iproute2 \
       iputils-ping \
       iverilog \
+      jq \
       language-pack-ja \
       less \
       libavcodec-dev \
       libavdevice-dev \
       libavformat-dev \
+      libboost-dev \
+      libc6-dev-i386 \
+      libcanberra-gtk* \
       libgflags-dev \
       libgl1-mesa-dri \
       libgnome2-bin \
       libgoogle-glog-dev \
+      libgraphviz-dev \
       libgtk2.0-dev \
       libjson-c-dev \
+      libncursesw5 \
+      libtinfo5 \
       libtool\
       libunwind-dev \
+      lsb-core \
+      lv \
       make \
       mesa-utils \
+      meson \
+      neovim \
+      net-tools \
+      ninja-build \
       nis \
       opencl-headers \
       openssh-server \
-      python3-minimal \
-      python3-opencv \
-      python3-pip \
-      python3-setuptools \
-      python3-venv \
+      peco \
+      pigz \
       ruby \
+      ruby-dev \
+      socat \
       software-properties-common \
       supervisor \
       sysstat \
       tig \
+      tigervnc-common \
+      tigervnc-standalone-server \
+      tigervnc-xorg-extension \
       tmux \
       tree \
       ttf-ubuntu-font-family \
@@ -70,12 +115,16 @@ RUN apt-get update -y && apt-get install -y \
       unity \
       unzip \
       valgrind \
+      verilator \
       vim \
+      vlc \
       wget \
       x11-utils \
       xorgxrdp \
       xrdp \
+      xsel \
       xserver-xorg-core \
+      xvfb \
       xz-utils \
       zenity \
       zsh \
@@ -84,25 +133,9 @@ RUN apt-get update -y && apt-get install -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
 
+# locale
 RUN update-locale LANG=ja_JP.UTF-8
-
-COPY files/yp.conf /etc/yp.conf
-COPY files/nsswitch.conf /etc/nsswitch.conf
-COPY files/startwm.sh /etc/xrdp/startwm.sh
-COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-RUN mkdir -p /var/run/sshd /var/run/dbus
-
-# Install packages
-RUN apt-get update -y && apt-get install -y \
-      gtkterm \
-      libgraphviz-dev \
-      lv \
-      ruby-dev \
-      verilator \
-      && apt autoclean -y \
-      && apt autoremove -y \
-      && rm -rf /var/lib/apt/lists/*
+RUN locale-gen en_US.UTF-8
 
 RUN pip3 install \
       Flask \
@@ -116,291 +149,568 @@ RUN pip3 install \
       setuptools \
       wheel
 
-RUN apt-get update -y && \
-    apt-get install -y libgtest-dev; \
-    cd /usr/src/gtest; \
-    mkdir build; \
-    cd build && cmake .. && make && make install
+##===========================================================================
+## dev_base
+##===========================================================================
+
+FROM ubuntu_base AS dev_base
+
+ARG XRT_PACKAGE_URL
+
+ARG PLATFORM_TAR_GZ_URL
+# U50     : https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50_2021.2_2021_1021_1001-all.deb.tar.gz
+# VCK5000 : https://www.xilinx.com/bin/public/openDownload?filename=xilinx-vck5000-prod-gen3x16-platform-1-0_all.deb.tar.gz
+
+ARG PLATFORM_DEB_URL
+
+SHELL ["/bin/bash", "-c"]
+
+WORKDIR /tmp
+
+# For xbutil validate
+RUN pip install --upgrade pip && \
+    pip install pyopencl 
 
 # Install XRT
-WORKDIR /tmp
-RUN wget -O xrt.deb https://www.xilinx.com/bin/public/openDownload?filename=xrt_202010.2.6.655_18.04-amd64-xrt.deb && \
+RUN test -n "$XRT_PACKAGE_URL" && \
+    wget -O xrt.deb "$XRT_PACKAGE_URL" && \
     apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive \
     apt-get install -y ./xrt.deb && \
-    rm -rf ./xrt.deb && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf ./xrt.deb || \
+    true
 
-# Install packages from source
-RUN wget -O glog.0.4.0.tar.gz https://codeload.github.com/google/glog/tar.gz/v0.4.0 && \
-    tar xf  glog.0.4.0.tar.gz && cd glog-0.4.0 && ./autogen.sh && \
-    mkdir build && cd build && cmake -DBUILD_SHARED_LIBS=ON .. && make -j 12 && make install && rm -rf /tmp/*
-RUN wget https://codeload.github.com/google/protobuf/zip/v3.4.0 && \
-    unzip v3.4.0 && cd protobuf-3.4.0 && ./autogen.sh && ./configure && make -j 12 && make install && ldconfig
-RUN wget https://github.com/opencv/opencv/archive/3.4.0.tar.gz && tar -xvf 3.4.0.tar.gz && \
-    cd opencv-3.4.0 && mkdir build && cd build && \
-    cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_FFMPEG=ON -D WITH_TBB=ON -D WITH_GTK=ON \
-      -D WITH_V4L=ON -D WITH_OPENGL=ON -D WITH_CUBLAS=ON -DWITH_QT=OFF -DCUDA_NVCC_FLAGS="-D_FORCE_INLINES" .. && \
-    make -j 12 && make install && ldconfig && rm -rf /tmp/*
-RUN wget http://launchpadlibrarian.net/436533799/libjson-c4_0.13.1+dfsg-4_amd64.deb && \
-    dpkg -i libjson-c4_0.13.1+dfsg-4_amd64.deb && rm -rf /tmp/*
+# Install Deployment Platform (tar.gz)
+RUN test -n "$PLATFORM_TAR_GZ_URL" && \
+    wget -O platform.tar.gz "$PLATFORM_TAR_GZ_URL" && \
+    mkdir platform && cd platform && tar xf ../platform.tar.gz && \
+    apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y ./*.deb && \
+    rm -rf ./platform.tar.gz ./platform || \
+    true
+
+# Install Deployment Platform (deb)
+RUN test -n "$PLATFORM_DEB_URL" && \
+    wget -O platform.deb "$PLATFORM_DEB_URL" && \
+    apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y ./platform.deb && \
+    rm ./platform.deb || \
+    true
+
+##===========================================================================
+## dev_{card}
+##===========================================================================
+
+FROM dev_base AS dev_u200
+FROM dev_base AS dev_u250
+FROM dev_base AS dev_u280es1
+FROM dev_base AS dev_u50
+FROM dev_base AS dev_vck5000
+
+##===========================================================================
+## dev_no / dev
+##===========================================================================
+
+FROM dev_base AS dev_no
+FROM dev_${CARD} AS dev
+
+##===========================================================================
+## vai_20_base
+##===========================================================================
+
+FROM dev as vai_20_base
+
+SHELL ["/bin/bash", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG XRM_PACKAGE_URL="https://www.xilinx.com/bin/public/openDownload?filename=xrm_202120.1.3.29_18.04-x86_64.deb"
 
 # Env for Vitis AI
 ENV VAI_ROOT=/opt/vitis_ai
-ENV PATH="${VAI_ROOT}/utility:${PATH}"
+ARG VAI_CONDA_CHANNEL="file:///tmp/conda-channel"
 
-# Install conda
-ENV MY_CONDA_CHANNEL="file:///scratch/conda-channel"
-
-WORKDIR /scratch
-RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
-    /bin/bash ./miniconda.sh -b -p $VAI_ROOT/conda && \
-    ln -s $VAI_ROOT/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh
-
-COPY files/conda_requirements.txt /scratch/
-COPY files/conda_requirements_neptune.txt /scratch/
-COPY files/pip_requirements.txt /scratch/
-COPY files/pip_requirements_neptune.txt /scratch/
-
-RUN wget -O conda-channel.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=conda-channel_1.2.tar.gz && \
-    tar xf conda-channel.tar.gz && \
-    source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
-    conda create -n vitis-ai-caffe \
-        python=3.6 caffe_decent \
-        --file /scratch/conda_requirements.txt \
-        -c $MY_CONDA_CHANNEL -c defaults -c conda-forge/label/gcc7 && \
-    conda activate vitis-ai-caffe && \
-    pip install -r /scratch/pip_requirements.txt && \
-    conda create -n vitis-ai-tensorflow \
-        python=3.6 vai_q_tensorflow keras \
-        --file /scratch/conda_requirements.txt \
-        -c $MY_CONDA_CHANNEL -c defaults -c conda-forge/label/gcc7 && \
-    conda activate vitis-ai-tensorflow && \
-    pip install -r /scratch/pip_requirements.txt && \
-    conda create -n vitis-ai-neptune \
-        python=3.6 \
-        --file /scratch/conda_requirements_neptune.txt \
-        -c $MY_CONDA_CHANNEL -c defaults -c conda-forge/label/gcc7 -c conda-forge && \
-    conda activate vitis-ai-neptune && \
-    pip install -r /scratch/pip_requirements_neptune.txt && \
-    mkdir -p $VAI_ROOT/compiler && \
-    ln -s /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/lib/python3.6/site-packages/vaic/arch /opt/vitis_ai/compiler/arch && \
-    rm -rf /scratch/*
-
-# Install Vitis AI 1.2
 WORKDIR /tmp
-RUN wget -O libunilog.deb           https://www.xilinx.com/bin/public/openDownload?filename=libunilog_1.2.0-r10_amd64.deb && \
-    wget -O libtarget-factory.deb   https://www.xilinx.com/bin/public/openDownload?filename=libtarget-factory_1.2.0-r10_amd64.deb && \
-    wget -O libxir.deb              https://www.xilinx.com/bin/public/openDownload?filename=libxir_1.2.0-r12_amd64.deb && \
-    wget -O libvart.deb             https://www.xilinx.com/bin/public/openDownload?filename=libvart_1.2.0-r16_amd64.deb && \
-    wget -O libvitis_ai_library.deb https://www.xilinx.com/bin/public/openDownload?filename=libvitis_ai_library_1.2.0-r15_amd64.deb && \
-	  apt-get install -y --no-install-recommends /tmp/*.deb && \
-	  sudo ldconfig && \
-	  rm /tmp/*.deb && \
-    rm -rf /var/lib/apt/lists/*
 
-# Install Alveo deployment platforms
-RUN wget -O u200.deb     https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u200-xdma-201830.2-2580015_18.04.deb && \
-    wget -O u250.deb     https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u250-xdma-201830.2-2580015_18.04.deb && \
-	  apt-get install -y ./*.deb && \
-	  rm *.deb && \
-    rm -rf /var/lib/apt/lists/*
+# Install XRM
+RUN wget -O xrm.deb "$XRM_PACKAGE_URL" && \
+    apt-get update -y && \
+    apt-get install -y ./xrm.deb && \
+    rm -rf ./xrm.deb
 
-##RUN wget -O u280-es1.deb https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u280-es1-xdma-201910.1-2579327_18.04.deb && \
-##	  apt-get install -y ./*.deb && \
-##	  rm *.deb && \
-##    rm -rf /var/lib/apt/lists/*
+EXPOSE 9763
+COPY files/supervisor/xrm.conf /etc/supervisor/conf.d
 
-##RUN wget -O u50.tar.gz   https://www.xilinx.com/bin/public/openDownload?filename=Xilinx_u50-gen3x16-xdma-201920.3-2784799_18.04_deb.tar.gz && \
-##    tar xf u50.tar.gz && \
-##	  apt-get install -y /tmp/*.deb && \
-##	  rm *.deb *.tar.gz && \
-##    rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        apt-transport-https \
+        autoconf \
+        automake \
+        bc \
+        build-essential \
+        bzip2 \
+        ca-certificates \
+        curl \
+        g++ \
+        gdb \
+        git \
+        gnupg \
+        locales \
+        libboost-all-dev \
+        libgflags-dev \
+        libgoogle-glog-dev \
+        libgtest-dev \
+        libjson-c-dev \
+        libjsoncpp-dev \
+        libssl-dev \
+        libtool \
+        libunwind-dev \
+        make \
+        openssh-client \
+        openssl \
+        python3 \
+        python3-dev \
+        python3-minimal \
+        python3-numpy \
+        python3-opencv \
+        python3-pip \
+        python3-setuptools \
+        python3-venv \
+        software-properties-common \
+        sudo \
+        tree \
+        unzip \
+        vim \
+        wget \
+        yasm \
+        zstd \
+        libavcodec-dev \
+        libavformat-dev \
+        libeigen3-dev \
+        libgstreamer-plugins-base1.0-dev \
+        libgstreamer1.0-dev \
+        libgtest-dev \
+        libgtk-3-dev \
+        libgtk2.0-dev \
+        libhdf5-dev \
+        libjpeg-dev \
+        libopenexr-dev \
+        libpng-dev \
+        libswscale-dev \
+        libtiff-dev \
+        libwebp-dev \
+        opencl-clhpp-headers \
+        opencl-headers \
+        pocl-opencl-icd \
+        rpm \
+    && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+    && apt-get install -y \
+        gcc-8 \
+        g++-8 \
+        gcc-9 \
+        g++-9 \
+    && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+    && apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' \
+    && apt-get update -y \
+    && apt-get install -y \
+        cmake=3.16.0-0kitware1 \
+        cmake-data=3.16.0-0kitware1 \
+        kitware-archive-keyring \
+    && apt-get install -y ffmpeg \
+    && cd /usr/src/gtest \
+    && mkdir -p build \
+    && cd build \
+    && cmake .. \
+    && make \
+    && make install
+
+# glog 0.4.0
+RUN cd /tmp \
+    && wget --progress=dot:mega -O glog.0.4.0.tar.gz https://codeload.github.com/google/glog/tar.gz/v0.4.0 \
+    && tar -xvf glog.0.4.0.tar.gz \
+    && cd glog-0.4.0 \
+    && ./autogen.sh \
+    && mkdir build \
+    && cd build \
+    && cmake -DBUILD_SHARED_LIBS=ON .. \
+    && make -j \
+    && make install \
+    && rm -fr /tmp/*
+
+# protobuf 3.4.0
+RUN cd /tmp; wget --progress=dot:mega https://codeload.github.com/google/protobuf/zip/v3.4.0 \
+    && unzip v3.4.0 \
+    && cd protobuf-3.4.0 \
+    && ./autogen.sh \
+    && ./configure \
+    && make -j \
+    && make install \
+    && ldconfig \
+    && rm -fr /tmp/*
+
+# opencv 3.4.1
+RUN add-apt-repository ppa:timsc/opencv-3.4 \
+    && apt-get update \
+    && apt install -y\
+        libcv-dev=3.4.1-bionic1.1 \
+        libcv3.4=3.4.1-bionic1.1 \
+        libopencv-calib3d-dev=3.4.1-bionic1.1  \
+        libopencv-calib3d3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-calib3d3.4=3.4.1-bionic1.1 \
+        libopencv-core-dev=3.4.1-bionic1.1 \
+        libopencv-core3.4=3.4.1-bionic1.1 \
+        libopencv-dev=3.4.1-bionic1.1 \
+        libopencv-dnn-dev=3.4.1-bionic1.1 \
+        libopencv-dnn3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-dnn3.4=3.4.1-bionic1.1 \
+        libopencv-features2d-dev=3.4.1-bionic1.1 \
+        libopencv-features2d3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-features2d3.4=3.4.1-bionic1.1 \
+        libopencv-flann-dev=3.4.1-bionic1.1 \
+        libopencv-flann3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-flann3.4=3.4.1-bionic1.1 \
+        libopencv-highgui-dev=3.4.1-bionic1.1 \
+        libopencv-highgui3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-highgui3.4=3.4.1-bionic1.1 \
+        libopencv-imgcodecs-dev=3.4.1-bionic1.1 \
+        libopencv-imgcodecs3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-imgcodecs3.4=3.4.1-bionic1.1 \
+        libopencv-imgproc-dev=3.4.1-bionic1.1 \
+        libopencv-imgproc3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-imgproc3.4=3.4.1-bionic1.1 \
+        libopencv-ml-dev=3.4.1-bionic1.1 \
+        libopencv-ml3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-ml3.4=3.4.1-bionic1.1 \
+        libopencv-objdetect-dev=3.4.1-bionic1.1 \
+        libopencv-objdetect3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-objdetect3.4=3.4.1-bionic1.1 \
+        libopencv-photo-dev=3.4.1-bionic1.1 \
+        libopencv-photo3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-photo3.4=3.4.1-bionic1.1 \
+        libopencv-shape-dev=3.4.1-bionic1.1 \
+        libopencv-shape3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-shape3.4=3.4.1-bionic1.1 \
+        libopencv-stitching-dev=3.4.1-bionic1.1 \
+        libopencv-stitching3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-stitching3.4=3.4.1-bionic1.1 \
+        libopencv-superres-dev=3.4.1-bionic1.1 \
+        libopencv-superres3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-superres3.4=3.4.1-bionic1.1 \
+        libopencv-ts-dev=3.4.1-bionic1.1 \
+        libopencv-video-dev=3.4.1-bionic1.1 \
+        libopencv-video3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-video3.4=3.4.1-bionic1.1 \
+        libopencv-videoio-dev=3.4.1-bionic1.1 \
+        libopencv-videoio3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-videoio3.4=3.4.1-bionic1.1 \
+        libopencv-videostab-dev=3.4.1-bionic1.1 \
+        libopencv-videostab3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-videostab3.4=3.4.1-bionic1.1 \
+        libopencv-viz-dev=3.4.1-bionic1.1 \
+        libopencv-viz3.4-dbg=3.4.1-bionic1.1 \
+        libopencv-viz3.4=3.4.1-bionic1.1 \
+        libopencv3.4-java=3.4.1-bionic1.1 \
+        opencv-data=3.4.1-bionic1.1 \
+        opencv-doc=3.4.1-bionic1.1 \
+        python-opencv=3.4.1-bionic1.1 \
+        python3-opencv=3.4.1-bionic1.1
+
+
+# gflags 2.2.2
+RUN cd /tmp; wget --progress=dot:mega https://github.com/gflags/gflags/archive/v2.2.2.tar.gz \
+    && tar xvf v2.2.2.tar.gz \
+    && cd gflags-2.2.2 \
+    && mkdir build \
+    && cd build \
+    && cmake -DBUILD_SHARED_LIBS=ON .. \
+    && make -j \
+    && make install \
+    && rm -fr /tmp/*
+
+# pybind 2.5.0
+RUN cd /tmp; git clone https://github.com/pybind/pybind11.git \
+    && cd pybind11 \
+    && git checkout v2.5.0 \
+    && mkdir build \
+    && cd build \
+    && cmake -DPYBIND11_TEST=OFF .. \
+    && make \
+    && make install \
+    && rm -fr /tmp/* \
+    && chmod 777 /usr/lib/python3/dist-packages
+
+RUN wget --progress=dot:mega https://github.com/json-c/json-c/archive/json-c-0.15-20200726.tar.gz \
+    && tar xvf json-c-0.15-20200726.tar.gz \
+    && cd json-c-json-c-0.15-20200726 \
+    && mkdir build \
+    && cd build \
+    && cmake -DBUILD_SHARED_LIBS=ON .. \
+    && make -j \
+    && make install \
+    && rm -Rf /tmp/*
+
+RUN mkdir -p ${VAI_ROOT} \
+    && mkdir /etc/conda \
+    && touch /etc/conda/condarc \
+    && mkdir -p ${VAI_ROOT}/scripts
+
+# Set up Anaconda
+RUN cd /tmp \
+    && wget --progress=dot:mega https://github.com/conda-forge/miniforge/releases/download/4.10.3-5/Mambaforge-4.10.3-5-Linux-x86_64.sh -O miniconda.sh \
+    && /bin/bash ./miniconda.sh -b -p $VAI_ROOT/conda \
+    && cat /dev/null > /etc/conda/condarc \
+    && echo "channels:" >> /etc/conda/condarc \
+    && echo "  - ${VAI_CONDA_CHANNEL}" >> /etc/conda/condarc \
+    && echo "remote_connect_timeout_secs: 60.0">> /etc/conda/condarc \
+    && rm -fr /tmp/miniconda.sh \
+    && sudo ln -s $VAI_ROOT/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh \
+    && . /etc/profile.d/conda.sh \
+    &&  conda clean -y --force-pkgs-dirs
+
+WORKDIR /tmp
+ADD files/vitis_ai/cpu_conda/*.yml /tmp/
+ADD files/vitis_ai/pip_requirements.txt /tmp/
+
+# Rebuild this layer every time
+ARG CACHEBUST=1
+
+RUN cd /tmp \
+    && wget -O conda-channel.tar.gz --progress=dot:mega https://www.xilinx.com/bin/public/openDownload?filename=conda-channel_2.0.0.1103-02.tar.gz \
+    && tar -xzvf conda-channel.tar.gz \
+    && . $VAI_ROOT/conda/etc/profile.d/conda.sh \
+    && mamba install -c conda-forge conda-build \
+    && python3 -m pip install --upgrade pip wheel setuptools \
+    && mamba env create -f /tmp/vitis-ai-pytorch.yml \
+        && conda activate vitis-ai-pytorch \
+        && pip install -r /tmp/pip_requirements.txt \
+    && mamba env create -f /tmp/vitis-ai-caffe.yml \
+        && conda activate vitis-ai-caffe \
+        &&  mamba  install -y --no-update-deps  pydot pyyaml jupyter ipywidgets \
+        dill progressbar2 pytest scikit-learn pandas matplotlib \
+        pillow  -c conda-forge -c defaults \
+        && pip install -r /tmp/pip_requirements.txt \
+    && mamba env create -f /tmp/vitis-ai-tensorflow.yml \
+        && conda activate vitis-ai-tensorflow \
+        && pip install -r /tmp/pip_requirements.txt \
+    && mamba env create -f /tmp/vitis-ai-tensorflow2.yml \
+        && conda activate vitis-ai-tensorflow2 \
+        &&  mamba  install --no-update-deps -y vai_q_tensorflow2  pydot pyyaml jupyter ipywidgets \
+        dill progressbar2 pytest scikit-learn pandas matplotlib \
+        pillow  -c conda-forge -c defaults \
+        && pip install -r /tmp/pip_requirements.txt \
+        && pip install  --ignore-installed tensorflow==2.6 keras==2.6 \
+        && pip uninstall -y h5py \
+         && pip uninstall -y h5py \
+        && mamba install  -y --override-channels --force-reinstall h5py=2.10.0  -c conda-forge -c anaconda  \
+    && conda clean -y --force-pkgs-dirs \
+    && rm -fr ~/.cache \
+    && mkdir -p $VAI_ROOT/compiler \
+        && conda activate vitis-ai-caffe \
+        && sudo cp -r $CONDA_PREFIX/lib/python3.6/site-packages/vaic/arch $VAI_ROOT/compiler/arch \
+    && cat /dev/null > /etc/conda/condarc
+
+# VAI-1372: Workaround to fix GCC 9 in vitis-ai-tensorflow
+RUN rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/activate.d/activate-binutils_linux-64.sh \
+    && rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/activate.d/activate-gcc_linux-64.sh \
+    && rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/activate.d/activate-gxx_linux-64.sh \
+    && rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/deactivate.d/deactivate-binutils_linux-64.sh \
+    && rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/deactivate.d/deactivate-gcc_linux-64.sh \
+    && rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/deactivate.d/deactivate-gxx_linux-64.sh
+
+RUN cd /tmp \
+    && wget -O libunilog.deb https://www.xilinx.com/bin/public/openDownload?filename=libunilog_2.0.0-r87_amd64.deb \
+    && wget -O libtarget-factory.deb https://www.xilinx.com/bin/public/openDownload?filename=libtarget-factory_2.0.0-r97_amd64.deb \
+    && wget -O libxir.deb https://www.xilinx.com/bin/public/openDownload?filename=libxir_2.0.0-r109_amd64.deb \
+    && wget -O libvart.deb https://www.xilinx.com/bin/public/openDownload?filename=libvart_2.0.0-r148_amd64.deb \
+    && wget -O libvitis_ai_library.deb https://www.xilinx.com/bin/public/openDownload?filename=libvitis_ai_library_2.0.0-r134_amd64.deb \
+    && wget -O librt-engine.deb https://www.xilinx.com/bin/public/openDownload?filename=librt-engine_2.0.0-r221_amd64.deb \
+    && wget -O aks.deb https://www.xilinx.com/bin/public/openDownload?filename=aks_2.0.0-r92_amd64.deb \
+    && apt-get install -y --no-install-recommends /tmp/*.deb \
+    && rm -rf /tmp/* \
+    && ldconfig
+
+# Set default build toolchain to GCC 9 for better performance
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 \
+        --slave /usr/bin/g++ g++ /usr/bin/g++-9 \
+        --slave /usr/bin/gcov gcov /usr/bin/gcov-9 \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 \
+        --slave /usr/bin/g++ g++ /usr/bin/g++-8 \
+        --slave /usr/bin/gcov gcov /usr/bin/gcov-8 \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 \
+        --slave /usr/bin/g++ g++ /usr/bin/g++-7 \
+        --slave /usr/bin/gcov gcov /usr/bin/gcov-7
+
+RUN apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /scratch/*
 
 # Vitis AI GitHub
-RUN cd $VAI_ROOT && \
-    git clone https://github.com/Xilinx/Vitis-AI.git workspace
+RUN cd $VAI_ROOT \
+    && git clone https://github.com/Xilinx/Vitis-AI.git workspace \
+    && cd workspace \
+    && git checkout 2.0
 
-# U50 overlay
-##RUN wget https://www.xilinx.com/bin/public/openDownload?filename=U50_xclbin-v2.tar.gz -O U50_xclbin-v2.tar.gz && \
-##    tar xf U50_xclbin-v2.tar.gz && \
-##    cp U50_xclbin/6E250M/dpu.xclbin U50_xclbin/6E250M/hbm_address_assignment.txt /usr/lib && \
-##    rm -rf *.tar.gz U50_xclbin
+##===========================================================================
+## vai_20_vck5000
+##===========================================================================
 
-# U200/U250 overlay
-RUN wget -O overlay.deb https://www.xilinx.com/bin/public/openDownload?filename=xilinx-overlaybins.deb && \
-    wget -O xplusml.deb https://www.xilinx.com/bin/public/openDownload?filename=vai-1.1-xplusml-bins-18.04.deb && \
-	  apt-get install -y /tmp/*.deb && \
-	  rm *.deb && \
-    rm -rf /var/lib/apt/lists/*
+FROM vai_20_base AS vai_20_vck5000
 
-COPY files/supervisor/xbutler.conf /etc/supervisor/conf.d
+SHELL ["/bin/bash", "-c"]
 
-# entry
-COPY files/supervisor/entry.conf /etc/supervisor/conf.d
+WORKDIR /tmp
+
+# xclbin
+RUN wget "https://www.xilinx.com/bin/public/openDownload?filename=DPUCVDX8H_xclbins_2_0_0.tar.gz" -O xclbins.tar.gz && \
+    tar xf xclbins.tar.gz --directory / && \
+    rm xclbins.tar.gz
 
 # VART
-RUN cd $VAI_ROOT/workspace && \
-    wget https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_runtime_r1.2.0_image_video.tar.gz -O vitis_ai_runtime_image_video.tar.gz && \
-    tar xf vitis_ai_runtime_image_video.tar.gz -C VART && \
-    rm vitis_ai_runtime_image_video.tar.gz
+RUN cd $VAI_ROOT/workspace/demo && \
+    wget "https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_runtime_r2.0.0_image_video.tar.gz" \
+        -O vitis_ai_runtime_r2.0.0_image_video.tar.gz && \
+    tar -xzvf vitis_ai_runtime_r2.0.0_image_video.tar.gz -C VART && \
+    rm vitis_ai_runtime_r2.0.0_image_video.tar.gz
 
-# Vitis AI Library
-RUN cd $VAI_ROOT/workspace && \
-    wget -O vitis_ai_library_images.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r1.2.0_images.tar.gz && \
-    wget -O vitis_ai_library_video.tar.gz   https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r1.2.0_video.tar.gz && \
-    tar xf vitis_ai_library_images.tar.gz -C Vitis-AI-Library/overview && \
-    tar xf vitis_ai_library_video.tar.gz  -C Vitis-AI-Library/overview && \
-    rm *.tar.gz
+# Pretrained models
+ENV VAI_MODELS=/usr/share/vitis_ai_library/models
+ADD files/vitis_ai/download_models.sh /tmp/
+ADD files/vitis_ai/models_vck50008pe-DPUCVDX8H.txt /tmp/
+ADD files/vitis_ai/models_vck50006pe-DPUCVDX8H-DWC.txt /tmp/
+RUN /tmp/download_models.sh vck50008pe-DPUCVDX8H /tmp/models_vck50008pe-DPUCVDX8H.txt
+RUN /tmp/download_models.sh vck50006pe-DPUCVDX8H-DWC /tmp/models_vck50006pe-DPUCVDX8H-DWC.txt
 
-COPY files/vitis_ai_library.patch $VAI_ROOT/workspace/Vitis-AI-Library
-
-RUN cd $VAI_ROOT/workspace/Vitis-AI-Library && \
-    source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
-    conda activate vitis-ai-caffe && \
-    patch -p2 < vitis_ai_library.patch && \
-    ./cmake.sh --clean --type=release \
-      --build-dir=$VAI_ROOT/workspace/Vitis-AI-Library/build \
-      --install-prefix=$VAI_ROOT/workspace/Vitis-AI-Library/install \
-      --cmake-options=-DCMAKE_PREFIX_PATH=$CONDA_PREFIX \
-      --cmake-options=-DENABLE_DPUCADX8G_RUNNER=ON
+WORKDIR /tmp
+RUN wget https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r2.0.0_images.tar.gz -O vitis_ai_library_r2.0.0_images.tar.gz && \
+    wget https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r2.0.0_video.tar.gz -O vitis_ai_library_r2.0.0_video.tar.gz && \
+    cd $VAI_ROOT/workspace && \
+    tar -xzvf /tmp/vitis_ai_library_r2.0.0_images.tar.gz -C demo/Vitis-AI-Library/ && \
+    tar -xzvf /tmp/vitis_ai_library_r2.0.0_video.tar.gz -C demo/Vitis-AI-Library/
 
 # Vitis AI setup file
 COPY files/vitis_ai/setup.sh $VAI_ROOT
 
-RUN echo 'source $VAI_ROOT/workspace/alveo/overlaybins/setup.sh'                                    >> $VAI_ROOT/setup.sh && \
-    echo 'export LD_LIBRARY_PATH=$VAI_ROOT/workspace/Vitis-AI-Library/install/lib:$LD_LIBRARY_PATH' >> $VAI_ROOT/setup.sh && \
-    echo 'export LD_LIBRARY_PATH=$VAI_ROOT/conda/envs/vitis-ai-tensorflow/lib:$LD_LIBRARY_PATH'     >> $VAI_ROOT/setup.sh
+COPY files/vitis_ai/select-dpu-vck5000.sh $VAI_ROOT
+COPY files/vitis_ai/demo-vai-vck5000.sh $VAI_ROOT
+RUN echo 'alias select-dpu="source $VAI_ROOT/select-dpu-vck5000.sh"' >> $VAI_ROOT/setup.sh
+RUN echo 'alias demo-vai="bash $VAI_ROOT/demo-vai-vck5000.sh"' >> $VAI_ROOT/setup.sh
 
-RUN cd $VAI_ROOT/workspace && \
-    wget -O vai_lib_u200_u250_models.tar.gz https://www.xilinx.com/bin/public/openDownload?filename=vai_lib_u200_u250_models.tar.gz && \
-    tar xf vai_lib_u200_u250_models.tar.gz --absolute-names && \
-    rm vai_lib_u200_u250_models.tar.gz
+##===========================================================================
+## vai_20
+##===========================================================================
 
-# For xbutil validate
-RUN pip2 install pyopencl==2020.1 pytools==2020.2
+FROM vai_20_base AS vai_20_no
+FROM vai_20_${CARD} AS vai_20
 
-# Fix icon
-RUN apt-get update -y && apt-get install -y \
-      gnome-icon-theme \
-      && apt autoclean -y \
-      && apt autoremove -y \
-      && rm -rf /var/lib/apt/lists/*
+##===========================================================================
+## vai_no / vai
+##===========================================================================
 
-# Fix no lsb message
-RUN apt-get update -y && apt-get install -y \
-      lsb-core \
-      && apt autoclean -y \
-      && apt autoremove -y \
-      && rm -rf /var/lib/apt/lists/*
+FROM dev as vai_no
+FROM vai_${ENABLE_VAI} AS vai
 
-# Download ML models
-RUN echo 'export VAI_ALVEO_ROOT=$VAI_ROOT/alveo' >> $VAI_ROOT/setup.sh
+RUN rm -rf /tmp/*
 
-RUN cd $VAI_ROOT/workspace/alveo/examples/caffe && \
-    source $VAI_ROOT/setup.sh && \
-    conda activate vitis-ai-caffe && \
-    python getModels.py && \
-    python replace_mluser.py --modelsdir models
-    
-RUN cd $VAI_ROOT/workspace/alveo/examples/tensorflow && \
-    source $VAI_ROOT/setup.sh && \
-    conda activate vitis-ai-tensorflow && \
-    python getModels.py
+##===========================================================================
+## user_acri_yes
+##===========================================================================
 
-RUN source $VAI_ROOT/setup.sh && \
-    conda activate vitis-ai-caffe && \
-    python -m ck pull repo:ck-env && \
-    python -m ck install package:imagenet-2012-val-min && \
-    python -m ck install package:imagenet-2012-aux && \
-    mkdir -p $VAI_ROOT/CK-TOOLS && \
-    mv ~/CK-TOOLS/* $VAI_ROOT/CK-TOOLS
+# ACRi remote env
+FROM vai AS user_acri_yes
 
-## RUN source $VAI_ROOT/setup.sh && \
-##     conda activate vitis-ai-caffe && \
-##     python -m ck pull repo:ck-env && \
-##     python -m ck install package:dataset-coco-2014-val && \
-##     mkdir -p $VAI_ROOT/CK-TOOLS && \
-##     mv ~/CK-TOOLS/* $VAI_ROOT/CK-TOOLS
+# nis
+COPY files/yp.conf /etc/yp.conf
+COPY files/nsswitch.conf /etc/nsswitch.conf
 
-## RUN cd $VAI_ROOT/workspace/alveo/apps/yolo && \
-##     wget -c https://pjreddie.com/media/files/coco/labels.tgz && \
-##     tar xf labels.tgz labels/val2014 && \
-##     mkdir -p test_image_set && \
-##     find $VAI_ROOT/CK-TOOLS/dataset-coco-2014-val/val2014/ -name "*.jpg" | tail -25 | xargs cp -t test_image_set/ && \
-##     ls test_image_set | awk '{print $1 " " 0}' > images.txt
+# supervisor
+COPY files/supervisor/nis.conf /etc/supervisor/conf.d
 
-# Fix
-RUN echo 'export VAI_ALVEO_ROOT=$VAI_ROOT/workspace/alveo' >> $VAI_ROOT/setup.sh
+# Tool license
+RUN echo "export XILINXD_LICENSE_FILE=2100@172.16.6.205" >> /etc/profile
 
-## # YOLO
-## RUN cd $VAI_ROOT/workspace/alveo && \
-##     wget https://www.xilinx.com/bin/public/openDownload?filename=models.caffe.yolov3_2019-11-26.zip -O temp.zip && \
-##     unzip -o temp.zip && \
-##     rm temp.zip && \
-##     wget https://www.xilinx.com/bin/public/openDownload?filename=models.caffe.yolov2_2019-08-01.zip -O temp.zip && \
-##     unzip -o temp.zip && \
-##     rm temp.zip
+# sshd
+EXPOSE 22
 
-# VNC
-RUN apt-get update -y && apt-get install -y \
-      tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension \
-      && apt autoclean -y \
-      && apt autoremove -y \
-      && rm -rf /var/lib/apt/lists/*
+##===========================================================================
+## user_acri_no
+##===========================================================================
 
+FROM vai AS user_acri_no
+
+ARG USERNAME=user
+ARG GROUPNAME=user
+ARG PASSWORD=user
+ARG UID=1000
+ARG GID=1000
+ARG SSHD_PORT=${SSHD_PORT:-8022}
+
+RUN groupadd -g $GID $GROUPNAME && \
+    useradd -m -s /bin/bash -u $UID -g $GID $USERNAME && \
+    echo "$USERNAME:$PASSWORD" | chpasswd
+
+RUN echo "Port $SSHD_PORT" >> /etc/ssh/sshd_config
+
+# sshd
+EXPOSE $SSHD_PORT
+
+##===========================================================================
+## user
+##===========================================================================
+
+FROM user_acri_${ACRI} AS user
+
+SHELL ["/bin/bash", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# supervisor
+COPY files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY files/supervisor/entry.conf /etc/supervisor/conf.d
+
+# xrdp/vnc
+COPY files/startwm.sh /etc/xrdp/startwm.sh
 COPY files/xstartup /etc/vnc/xstartup
 COPY files/Xvnc-session /etc/X11/Xvnc-session
 COPY files/vnc.conf /etc/vnc.conf
 
-ARG PLATFORM="xilinx_u200_xdma_201830_2"
-
-# Alveo-PYNQ
-RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
-    conda create -n pynq && \
-    conda activate pynq && \
-    python -m pip install --upgrade pip && \
-    pip3 install --use-feature=2020-resolver \
-      pynq \
-      pynq-alveo-examples \
-      pynq-compute-labs && \
-    cd /opt && \
-    yes | pynq get-notebooks --device $PLATFORM
-
-COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
-
-# locale
-RUN locale-gen en_US.UTF-8
+RUN mkdir -p /var/run/sshd /var/run/dbus
+RUN rm -rf /var/run/dbus/pid
 
 ###############################################################
 
 # Add packages here
 RUN apt-get update -y && apt-get install -y \
-      ffmpeg \
-      gcc-multilib g++-multilib \
-      pigz \
-      libboost-dev \
+      gnupg2 \
+      pass \
+      libfdt1 \
       && apt autoclean -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
 
-## # For docker image debug (test only)
-## RUN apt-get update -y && apt-get install -y \
-##       net-tools \
-##       && apt autoclean -y \
-##       && apt autoremove -y \
-##       && rm -rf /var/lib/apt/lists/*
+RUN pip3 install \
+      jupyterlab
+
+RUN echo "dash dash/sh boolean false" | debconf-set-selections \
+    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash || true
 
 ###############################################################
 
-# xbutler (This should be the last)
-RUN apt-get install -y $VAI_ROOT/workspace/alveo/packages/ubuntu/xbutler_3.0-2.deb & sleep 10
-
-## # Fix dpkg error
-## RUN rm -f /var/lib/apt/lists/lock && \
-##     rm -f /var/cache/apt/archives/lock && \
-##     rm -f /var/lib/dpkg/updates/*
-
-EXPOSE 22 3389 5901
+EXPOSE 3389 5901
 
 CMD ["/usr/bin/supervisord"]
+
+## ## # Alveo-PYNQ
+## RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
+##     conda create -n pynq && \
+##     conda activate pynq && \
+##     python3 -m pip install --upgrade pip && \
+##     pip3 install --use-feature=2020-resolver \
+##       pynq \
+##       pynq-alveo-examples \
+##       pynq-compute-labs
+## 
+## COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
+
 

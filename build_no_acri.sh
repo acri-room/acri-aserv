@@ -16,7 +16,7 @@ docker buildx build \
   --build-arg PLATFORM_TAR_GZ_URL="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-vck5000-prod-gen3x16-platform-1-0_all.deb.tar.gz" \
   --target user \
   -t acri-as:latest \
-  -f Dockerfile.vck5000 . \
+  -f Dockerfile . \
   --load
 
 popd

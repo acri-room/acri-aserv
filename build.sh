@@ -23,7 +23,7 @@ function build() {
     --build-arg PLATFORM_DEB_URL="$platform_deb" \
     --target user \
     -t $tag \
-    -f Dockerfile.vck5000 . \
+    -f Dockerfile . \
     --load
 }
 
