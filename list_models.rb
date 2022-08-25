@@ -1,9 +1,10 @@
 require 'yaml'
 require 'pp'
 
-board = ARGV[0]
+zoo_dir = ARGV[0]
+board = ARGV[1]
 
-Dir['/opt/vitis_ai/workspace/models/AI-Model-Zoo/model-list/*/model.yaml'].each do |f|
+Dir[zoo_dir + '/model-list/*/model.yaml'].each do |f|
   model = YAML.load(File.read(f))
   model['files'].select { |x| x['board'] == board }.each do |file|
     puts file['download link']
