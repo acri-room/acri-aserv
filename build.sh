@@ -60,7 +60,7 @@ case $host in
   aserv4 )
     echo U50
     card=u50
-    vai=no
+    vai=25
     xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
     platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50_2021.2_2021_1021_1001-all.deb.tar.gz"
     build

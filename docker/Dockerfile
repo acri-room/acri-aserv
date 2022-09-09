@@ -16,6 +16,7 @@ ARG CARD=${CARD:-no}
 ##     vai_20
 ##         vai_20_vck5000
 ##     vai_25
+##         vai_25_u50
 ##         vai_25_vck5000
 ##     vai_no_no
 ## dev
@@ -677,11 +678,9 @@ RUN rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/activate.d/acti
     && rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/deactivate.d/deactivate-gcc_linux-64.sh \
     && rm -f /opt/vitis_ai/conda/envs/vitis-ai-tensorflow/etc/conda/deactivate.d/deactivate-gxx_linux-64.sh
 
-
-# wget -O librt-engine.deb https://www.xilinx.com/bin/public/openDownload?filename=librt-engine_2.5.0-r238_amd64.deb ; \
-
 RUN --mount=type=cache,target=/root/downloads \
     if [[ ! -e /root/downloads/vai25-deb ]] ; then \
+        mkdir -p /root/downloads/vai25-deb ; \
         cd /root/downloads/vai25-deb ; \
         wget -O libunilog.deb https://www.xilinx.com/bin/public/openDownload?filename=libunilog_2.5.0-r90_amd64.deb ; \
         wget -O libtarget-factory.deb https://www.xilinx.com/bin/public/openDownload?filename=libtarget-factory_2.5.0-r100_amd64.deb ; \
@@ -689,6 +688,7 @@ RUN --mount=type=cache,target=/root/downloads \
         wget -O libvart.deb https://www.xilinx.com/bin/public/openDownload?filename=libvart_2.5.0-r158_amd64.deb ; \
         wget -O libvitis_ai_library.deb https://www.xilinx.com/bin/public/openDownload?filename=libvitis_ai_library_2.5.0-r146_amd64.deb ; \
         wget -O aks.deb https://www.xilinx.com/bin/public/openDownload?filename=aks_2.0.0-r102_amd64.deb ; \
+        wget -O librt-engine.deb https://www.xilinx.com/bin/public/openDownload?filename=librt-engine_2.5.0-r238_amd64.deb ; \
     fi \
     && apt-get install -y --no-install-recommends /root/downloads/vai25-deb/*.deb \
     && ldconfig
@@ -879,12 +879,6 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     && apt-get update -y \
     && apt-get install -y $file
 
-# Install rt-engine
-RUN git clone https://github.com/anjn/rt-engine.git /tmp/rt-engine \
-    && cd /tmp/rt-engine \
-    && ./cmake.sh --clean --build-dir=$PWD/build --type=release --cmake-options="-DXRM_DIR=/opt/xilinx/xrm/share/cmake" --install-prefix=/usr/ \
-    && rm -rf /tmp/*
-
 EXPOSE 9763
 COPY files/supervisor/xrm.conf /etc/supervisor/conf.d
 
@@ -920,6 +914,44 @@ RUN echo 'alias select-dpu="source $VAI_ROOT/select-dpu-vck5000.sh"' >> $VAI_ROO
 RUN echo 'alias demo-vai="bash $VAI_ROOT/demo-vai-vck5000.sh"' >> $VAI_ROOT/setup.sh
 
 ##===========================================================================
+## vai_25_u50
+##===========================================================================
+
+FROM vai_25 AS vai_25_u50
+
+SHELL ["/bin/bash", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /tmp
+
+# xclbin
+RUN mkdir -p /opt/xilinx/overlaybins/DPUCAHX8H/u50
+
+RUN --mount=type=cache,target=/root/downloads \
+    file=/root/downloads/dpu_DPUCAHX8H_6PE_300M_xilinx_u50_gen3x16_xdma_201920_3.xclbin && \
+    url="https://acri-room.web.app/dpu_DPUCAHX8H_6PE_300M_xilinx_u50_gen3x16_xdma_201920_3.xclbin" && \
+    if [[ ! -e $file ]] ; then \
+        wget "$url" -O "$file"; \
+    fi \
+    && cp $file /opt/xilinx/overlaybins/DPUCAHX8H/u50
+
+COPY files/vitis_ai/25/u50/setup.sh $VAI_ROOT/workspace/setup/alveo/setup.sh
+
+# Pretrained models
+ENV VAI_MODELS=/usr/share/vitis_ai_library/models
+ADD files/vitis_ai/25/u50/download_models.sh /tmp/
+ADD files/vitis_ai/25/u50/models_*.txt /tmp/
+
+RUN --mount=type=cache,target=/root/downloads \
+    /tmp/download_models.sh DPUCAHX8H
+
+COPY files/vitis_ai/25/select-dpu.sh $VAI_ROOT
+COPY files/vitis_ai/25/demo-vai.sh $VAI_ROOT
+RUN echo 'alias select-dpu="source $VAI_ROOT/select-dpu.sh"' >> $VAI_ROOT/setup.sh
+RUN echo 'alias demo-vai="bash $VAI_ROOT/demo-vai.sh"' >> $VAI_ROOT/setup.sh
+
+##===========================================================================
 ## vai_25_vck5000
 ##===========================================================================
 
@@ -927,7 +959,17 @@ FROM vai_25 AS vai_25_vck5000
 
 SHELL ["/bin/bash", "-c"]
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 WORKDIR /tmp
+
+# Uninstall rt-engine
+RUN apt remove librt-engine
+# Install rt-engine
+RUN git clone https://github.com/anjn/rt-engine.git /tmp/rt-engine \
+    && cd /tmp/rt-engine \
+    && ./cmake.sh --clean --build-dir=$PWD/build --type=release --cmake-options="-DXRM_DIR=/opt/xilinx/xrm/share/cmake" --install-prefix=/usr/ \
+    && rm -rf /tmp/*
 
 # xclbin
 RUN mkdir -p \
@@ -948,14 +990,14 @@ COPY files/vitis_ai/25/vck5000/setup.sh $VAI_ROOT/workspace/setup/vck5000/setup.
 
 # Pretrained models
 ENV VAI_MODELS=/usr/share/vitis_ai_library/models
-ADD files/vitis_ai/25/download_models.sh /tmp/
-ADD files/vitis_ai/25/models_*.txt /tmp/
+ADD files/vitis_ai/25/vck5000/download_models.sh /tmp/
+ADD files/vitis_ai/25/vck5000/models_*.txt /tmp/
 
 RUN --mount=type=cache,target=/root/downloads \
     /tmp/download_models.sh 8pe
 
-COPY files/vitis_ai/25/select-dpu-vck5000.sh $VAI_ROOT
-COPY files/vitis_ai/25/demo-vai-vck5000.sh $VAI_ROOT
+COPY files/vitis_ai/25/vck5000/select-dpu-vck5000.sh $VAI_ROOT
+COPY files/vitis_ai/25/vck5000/demo-vai-vck5000.sh $VAI_ROOT
 RUN echo 'alias select-dpu="source $VAI_ROOT/select-dpu-vck5000.sh"' >> $VAI_ROOT/setup.sh
 RUN echo 'alias demo-vai="bash $VAI_ROOT/demo-vai-vck5000.sh"' >> $VAI_ROOT/setup.sh
 

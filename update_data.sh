@@ -33,6 +33,7 @@ function download_data {
   local url="$1"
   local file="$2"
   if [ ! -e "$data_dir/$file" ] ; then
+    make_dir $(dirname $data_dir/$file)
     echo Downloading data $file...
     wget -O "$data_dir/$file" "$url"
   fi
@@ -46,6 +47,7 @@ update_repo github.com Xilinx Vitis-Tutorials
 update_repo github.com Xilinx Vitis-In-Depth-Tutorial
 update_repo github.com Xilinx Vitis_Accel_Examples
 update_repo github.com Xilinx Vitis-AI-Tutorials
+update_repo github.com Xilinx Vitis-AI
 update_repo github.com Xilinx HLS
 update_repo github.com Xilinx HLS-Tiny-Tutorials
 update_repo github.com Xilinx PYNQ
@@ -66,3 +68,5 @@ update_repo github.com anjn vlib-deflate-benchmark
 update_repo github.com kkos oniguruma
 
 download_data http://sun.aei.polsl.pl/~sdeor/corpus/silesia.zip silesia.zip
+download_data https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz cifar-10-python.tar.gz
+download_data https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz tf-keras-datasets/mist.npz
