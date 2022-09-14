@@ -94,20 +94,24 @@ if [[ $name =~ ^user-.*$ ]] ; then
   rm -f /tmp/*.xrdp.ini
 
   # Reset FPGA
+  LSPCI=/usr/bin/lspci
+  if [[ ! -e $LSPCI ]] ; then
+    LSPCI=/usr/sbin/lspci
+  fi
+
   if [[ $(hostname -s) != aserv5 ]] ; then
     /usr/sbin/rmmod xocl || true
     /usr/sbin/rmmod xclmgmt || true
     /usr/sbin/modprobe xclmgmt
 
-    LSPCI=/usr/bin/lspci
-    if [[ ! -e $LSPCI ]] ; then
-      LSPCI=/usr/sbin/lspci
-    fi
-
     for addr in $($LSPCI -D -d 10ee: -s .0 | awk '{print $1}') ; do
       /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
     done
     /usr/sbin/modprobe xocl
+    for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
+      /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
+    done
+  else
     for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
       /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
     done

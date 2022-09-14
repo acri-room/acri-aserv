@@ -66,6 +66,7 @@ update_repo github.com Xilinx ACCL
 update_repo github.com acri-room aie-tutorial
 update_repo github.com anjn vlib-deflate-benchmark
 update_repo github.com kkos oniguruma
+update_repo github.com FPGAtestbed vck5000_sum_example
 
 download_data http://sun.aei.polsl.pl/~sdeor/corpus/silesia.zip silesia.zip
 download_data https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz cifar-10-python.tar.gz
