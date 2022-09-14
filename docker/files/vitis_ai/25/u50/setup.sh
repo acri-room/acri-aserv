@@ -57,7 +57,7 @@ case $1 in
   DPUCAHX8H | dpuv3e)
     if [ "${platform}" = "u50_" ]; then
       export XCLBIN_PATH=/opt/xilinx/overlaybins/DPUCAHX8H/u50
-      export XLNX_VART_FIRMWARE=/opt/xilinx/overlaybins/DPUCAHX8H/u50/dpu_DPUCAHX8H_6PE_300M_xilinx_u50_gen3x16_xdma_201920_3.xclbin
+      export XLNX_VART_FIRMWARE=/opt/xilinx/overlaybins/DPUCAHX8H/u50/dpu_DPUCAHX8H_2PE_300M_xilinx_u50_gen3x16_xdma_201920_3.xclbin
     else
       export XCLBIN_PATH=
       export XLNX_VART_FIRMWARE=

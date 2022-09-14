@@ -78,6 +78,16 @@ fi
 # Start container
 echo Info: Start user container: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name, date=$(date)
 
+# Check XRT version
+xrt_ver=$(/opt/xilinx/xrt/bin/xbutil --version | grep -i version | head -n 1 | awk '{print $NF}')
+if [[ $xrt_ver = "`echo -e "$xrt_ver\n2.11.634" | sort -V | head -n 1`" ]] ; then
+  # <= 2021.1
+  xrt_ver=1
+else
+  # >= 2021.2
+  xrt_ver=2
+fi
+
 # Clean
 if [[ $name =~ ^user-.*$ ]] ; then
   # Clean scratch area
@@ -104,13 +114,18 @@ if [[ $name =~ ^user-.*$ ]] ; then
     /usr/sbin/rmmod xclmgmt || true
     /usr/sbin/modprobe xclmgmt
 
-    for addr in $($LSPCI -D -d 10ee: -s .0 | awk '{print $1}') ; do
-      /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
-    done
-    /usr/sbin/modprobe xocl
-    for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
-      /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
-    done
+    if [[ $xrt_ver -eq 1 ]] ; then
+      /usr/sbin/modprobe xocl
+      yes | /opt/xilinx/xrt/bin/xbutil reset > /dev/null
+    else
+      for addr in $($LSPCI -D -d 10ee: -s .0 | awk '{print $1}') ; do
+        /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
+      done
+      /usr/sbin/modprobe xocl
+      for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
+        /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
+      done
+    fi
   else
     for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
       /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
@@ -138,7 +153,11 @@ chmod 644 $xrdp_ini
 sed "s/%USER%/$user/" $cur/xrdp.ini.base > $xrdp_ini
 
 # Find driver
-xocl=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
+if [[ $xrt_ver -eq 1 ]] ; then
+  xocl=$(/opt/xilinx/xrt/bin/xbutil scan | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
+else
+  xocl=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
+fi
 xocl="/dev/dri/renderD$xocl"
 if [[ ! -e $xocl ]] ; then
   echo "Error: can't find xocl"
@@ -183,6 +202,10 @@ fi
 # for aserv5
 if [[ -e /data ]] ; then
   mounts="$mounts -v /data:/data"
+fi
+
+if [[ -e /mnt/data ]] ; then
+  mounts="$mounts -v /mnt/data:/mnt/data"
 fi
 
 docker run \

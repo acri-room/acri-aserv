@@ -6,7 +6,8 @@ ARG CARD=${CARD:-no}
 
 ## ubuntu:18.04
 ## base
-##     vai_base_2x
+##     vai_base_20
+##     vai_base_25
 ##     vai_base_no
 ## vai_base
 ##     dev_base
@@ -929,8 +930,8 @@ WORKDIR /tmp
 RUN mkdir -p /opt/xilinx/overlaybins/DPUCAHX8H/u50
 
 RUN --mount=type=cache,target=/root/downloads \
-    file=/root/downloads/dpu_DPUCAHX8H_6PE_300M_xilinx_u50_gen3x16_xdma_201920_3.xclbin && \
-    url="https://acri-room.web.app/dpu_DPUCAHX8H_6PE_300M_xilinx_u50_gen3x16_xdma_201920_3.xclbin" && \
+    file=/root/downloads/dpu_DPUCAHX8H_2PE_300M_xilinx_u50_gen3x16_xdma_201920_3.xclbin && \
+    url="https://acri-room.web.app/dpu_DPUCAHX8H_2PE_300M_xilinx_u50_gen3x16_xdma_201920_3.xclbin" && \
     if [[ ! -e $file ]] ; then \
         wget "$url" -O "$file"; \
     fi \
@@ -946,8 +947,8 @@ ADD files/vitis_ai/25/u50/models_*.txt /tmp/
 RUN --mount=type=cache,target=/root/downloads \
     /tmp/download_models.sh DPUCAHX8H
 
-COPY files/vitis_ai/25/select-dpu.sh $VAI_ROOT
-COPY files/vitis_ai/25/demo-vai.sh $VAI_ROOT
+COPY files/vitis_ai/25/u50/select-dpu.sh $VAI_ROOT
+COPY files/vitis_ai/25/u50/demo-vai.sh $VAI_ROOT
 RUN echo 'alias select-dpu="source $VAI_ROOT/select-dpu.sh"' >> $VAI_ROOT/setup.sh
 RUN echo 'alias demo-vai="bash $VAI_ROOT/demo-vai.sh"' >> $VAI_ROOT/setup.sh
 
@@ -1008,6 +1009,11 @@ RUN echo 'alias demo-vai="bash $VAI_ROOT/demo-vai-vck5000.sh"' >> $VAI_ROOT/setu
 FROM vai_20 AS vai_20_no
 FROM vai_25 AS vai_25_no
 
+FROM vai AS vai_no_u200
+FROM vai AS vai_no_u250
+FROM vai AS vai_no_u280es1
+FROM vai AS vai_no_u50
+FROM vai AS vai_no_vck5000
 FROM vai AS vai_no_no
 
 ##===========================================================================
