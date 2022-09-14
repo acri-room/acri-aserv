@@ -6,7 +6,8 @@ ARG CARD=${CARD:-no}
 
 ## ubuntu:18.04
 ## base
-##     vai_base_2x
+##     vai_base_20
+##     vai_base_25
 ##     vai_base_no
 ## vai_base
 ##     dev_base
@@ -1008,6 +1009,11 @@ RUN echo 'alias demo-vai="bash $VAI_ROOT/demo-vai-vck5000.sh"' >> $VAI_ROOT/setu
 FROM vai_20 AS vai_20_no
 FROM vai_25 AS vai_25_no
 
+FROM vai AS vai_no_u200
+FROM vai AS vai_no_u250
+FROM vai AS vai_no_u280es1
+FROM vai AS vai_no_u50
+FROM vai AS vai_no_vck5000
 FROM vai AS vai_no_no
 
 ##===========================================================================

@@ -6,7 +6,10 @@ host=$(hostname -s)
 
 cd $cur/docker
 
+args=$*
+
 function build() {
+  set -x
   docker buildx build \
     --build-arg CARD=$card \
     --build-arg ENABLE_VAI=$vai \
@@ -18,7 +21,9 @@ function build() {
     --target user \
     -t $tag \
     -f Dockerfile . \
+    $args \
     --load
+  set +x
 }
 
 ###############################
@@ -53,7 +58,7 @@ case $host in
     echo U280-ES1
     card=u280es1
     vai=no
-    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
+    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202010.2.7.766_18.04-amd64-xrt.deb"
     platform_deb="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u280-es1-xdma-201910.1-2579327_18.04.deb"
     build
     ;;
