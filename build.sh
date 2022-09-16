@@ -96,12 +96,7 @@ platform_tgz=
 platform_deb=
 
 case $host in
-  aserv1 | aserv2 | aserv3 | aserv4)
-    echo Tool
-    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
-    build
-    ;;
-  aserv5)
+  aserv1 | aserv2 | aserv3 | aserv4 | aserv5)
     echo Tool
     xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202210.2.13.478_18.04-amd64-xrt.deb"
     build
