@@ -224,6 +224,7 @@ docker run \
   -v $sshd_config:/etc/ssh/sshd_config \
   -v $xrdp_ini:/etc/xrdp/xrdp.ini \
   -v $cur/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh \
+  -v $cur/count-users.sh:/usr/local/bin/count-users.sh \
   -e LOGIN_USER=$user \
   -e LOGIN_USER_UID=$(id -u $user) \
   -e LOGIN_USER_GID=$(id -g $user) \

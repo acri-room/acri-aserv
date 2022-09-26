@@ -5,7 +5,7 @@ function sync_dir {
     local target=$1
     local dir=$2
     ssh $target "mkdir -p $dir"
-    rsync -ahzv --progress $dir/* root@$target:$dir
+    rsync -ahzv --delete --progress $dir/* root@$target:$dir
 }
 
 eval $(ssh-agent)
@@ -18,7 +18,7 @@ fi
 
 for t in $targets; do
     if [[ $t != $(hostname -s) ]] ; then
-        echo sync_dir $t /tools/repo
-        echo sync_dir $t /tools/data
+        sync_dir $t /tools/repo
+        sync_dir $t /tools/data
     fi
 done

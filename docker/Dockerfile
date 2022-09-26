@@ -1038,8 +1038,8 @@ COPY files/nsswitch.conf /etc/nsswitch.conf
 # supervisor
 COPY files/supervisor/nis.conf /etc/supervisor/conf.d
 
-# Tool license
-RUN echo "export XILINXD_LICENSE_FILE=2100@172.16.6.205" >> /etc/profile
+# AIE Tool license
+RUN echo "export XILINXD_LICENSE_FILE=2100@172.16.6.202:2100@172.16.6.205:2100@172.17.6.205" >> /etc/profile
 
 # sshd
 EXPOSE 22
