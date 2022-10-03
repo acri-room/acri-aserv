@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 cfg=$(echo "
-aserv2 eno1   172.16.6.202 172.16.6.2 172.16.6.102
-aserv5 enp3s0 172.17.6.205 172.17.6.5 172.17.6.105
+aserv2 eno1      172.16.6.202 172.16.6.2 172.16.6.102
+aserv5 enp0s31f6 172.17.6.205 172.17.6.5 172.17.6.105
 " | grep $(hostname))
 
 if=$(echo $cfg | awk '{print $2}')
