@@ -775,7 +775,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache/apt/archives \
     --mount=type=cache,target=/root/downloads \
     if [[ -n "$XRT_PACKAGE_URL" ]] ; then \
-        file=/root/downloads/$(echo $XRT_PACKAGE_URL | sed 's/^.*=//') && \
+        file=/root/downloads/$(echo $XRT_PACKAGE_URL | sed 's/^.*[=\/]//') && \
         if [[ ! -e $file ]] ; then \
             wget -O $file "$XRT_PACKAGE_URL" ; \
         fi && \
@@ -788,7 +788,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache/apt/archives \
     --mount=type=cache,target=/root/downloads \
     if [[ -n "$XRT_APU_PACKAGE_URL" ]] ; then \
-        file=/root/downloads/$(echo $XRT_APU_PACKAGE_URL | sed 's/^.*=//') && \
+        file=/root/downloads/$(echo $XRT_APU_PACKAGE_URL | sed 's/^.*[=\/]//') && \
         if [[ ! -e $file ]] ; then \
             wget -O $file "$XRT_APU_PACKAGE_URL" ; \
         fi && \
@@ -801,7 +801,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache/apt/archives \
     --mount=type=cache,target=/root/downloads \
     if [[ -n "$PLATFORM_TAR_GZ_URL" ]] ; then \
-        file=/root/downloads/$(echo $PLATFORM_TAR_GZ_URL | sed 's/^.*=//') && \
+        file=/root/downloads/$(echo $PLATFORM_TAR_GZ_URL | sed 's/^.*[=\/]//') && \
         if [[ ! -e $file ]] ; then \
             wget -O $file "$PLATFORM_TAR_GZ_URL" ; \
         fi && \
@@ -816,7 +816,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache/apt/archives \
     --mount=type=cache,target=/root/downloads \
     if [[ -n "$PLATFORM_DEB_URL" ]] ; then \
-        file=/root/downloads/$(echo $PLATFORM_DEB_URL | sed 's/^.*=//') && \
+        file=/root/downloads/$(echo $PLATFORM_DEB_URL | sed 's/^.*[=\/]//') && \
         if [[ ! -e $file ]] ; then \
             wget -O $file "$PLATFORM_DEB_URL" ; \
         fi && \
@@ -965,7 +965,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /tmp
 
 # Uninstall rt-engine
-RUN apt remove librt-engine
+#RUN apt remove librt-engine
 # Install rt-engine
 RUN git clone https://github.com/anjn/rt-engine.git /tmp/rt-engine \
     && cd /tmp/rt-engine \
@@ -980,9 +980,9 @@ RUN mkdir -p \
         /opt/xilinx/overlaybins/DPUCVDX8H/4PE
 
 RUN --mount=type=cache,target=/root/downloads \
-    file=/root/downloads/dpu_DPUCVDX8H_8PE_200M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin && \
+    file=/root/downloads/dpu_DPUCVDX8H_8PE_328M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin && \
     if [[ ! -e $file ]] ; then \
-        wget "https://acri-room.web.app/dpu_DPUCVDX8H_8PE_200M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin" \
+        wget "https://acri-room.web.app/dpu_DPUCVDX8H_8PE_328M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin" \
             -O $file; \
     fi \
     && cp $file /opt/xilinx/overlaybins/DPUCVDX8H/8PE
@@ -1034,6 +1034,7 @@ FROM dev AS user_acri_yes
 # nis
 COPY files/yp.conf /etc/yp.conf
 COPY files/nsswitch.conf /etc/nsswitch.conf
+RUN echo "acri.c.titech.ac.jp" > /etc/defaultdomain
 
 # supervisor
 COPY files/supervisor/nis.conf /etc/supervisor/conf.d

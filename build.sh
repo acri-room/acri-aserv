@@ -75,6 +75,7 @@ case $host in
     card=vck5000
     vai=25
     xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202210.2.13.478_18.04-amd64-xrt.deb"
+    #xrt="https://acri-room.web.app/xrt_202220.2.14.0_45d740ce_18.04-amd64-xrt.deb"
     xrt_apu="https://www.xilinx.com/bin/public/openDownload?filename=xrt-apu_202210.2.13.0_all.deb"
     platform_tgz=
     platform_deb="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-vck5000-gen4x8-xdma-base_2-20220513_all.deb"

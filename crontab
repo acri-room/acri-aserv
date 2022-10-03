@@ -1,2 +1,5 @@
 * * * * * /root/acri-aserv/start.sh >> /var/log/aserv.log 2>&1
 0 3 * * 1 /root/acri-aserv/stop_container_tool.sh >> /var/log/aserv.log 2>&1
+
+* * * * * /root/acri-aserv/license/start-license-server.sh >> /dev/null 2>&1
+* * * * * /root/acri-aserv/license/create-bridge >> /dev/null 2>&1

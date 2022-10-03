@@ -211,6 +211,7 @@ fi
 docker run \
   -dit \
   --network net \
+  --dns 172.16.2.1 \
   --ip $ip \
   --name "$name" \
   --hostname $hostname \
