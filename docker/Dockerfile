@@ -1040,7 +1040,7 @@ RUN echo "acri.c.titech.ac.jp" > /etc/defaultdomain
 COPY files/supervisor/nis.conf /etc/supervisor/conf.d
 
 # AIE Tool license
-RUN echo "export XILINXD_LICENSE_FILE=2100@172.16.6.202:2100@172.16.6.205:2100@172.17.6.205" >> /etc/profile
+RUN echo "export XILINXD_LICENSE_FILE=2100@172.16.6.202:2100@172.16.6.205" >> /etc/profile
 
 # sshd
 EXPOSE 22

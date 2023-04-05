@@ -2,8 +2,8 @@
 
 cfg=$(echo "
 aserv2 eno1      172.16.6.202 172.16.6.2 172.16.6.102
-aserv5 enp0s31f6 172.17.6.205 172.17.6.5 172.17.6.105
-" | grep $(hostname))
+aserv5 enp0s31f6 172.16.6.205 172.16.6.5 172.16.6.105
+" | grep $(hostname -s))
 
 if=$(echo $cfg | awk '{print $2}')
 lic_ip=$(echo $cfg | awk '{print $3}')
