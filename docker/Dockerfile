@@ -36,7 +36,7 @@ ARG CARD=${CARD:-no}
 ## ubuntu_base
 ##===========================================================================
 
-FROM ubuntu:18.04 as base
+FROM ubuntu:20.04 as base
 
 SHELL ["/bin/bash", "-c"]
 
