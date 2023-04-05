@@ -111,7 +111,6 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
       libfdt1 \
       libgflags-dev \
       libgl1-mesa-dri \
-      libgnome2-bin \
       libgoogle-glog-dev \
       libgraphviz-dev \
       libgtk2.0-dev \
@@ -1092,7 +1091,9 @@ EXPOSE 3389 5901
 RUN mkdir -p /var/run/sshd /var/run/dbus
 RUN rm -rf /var/run/dbus/pid
 
-RUN sed -i '/imklog/s/^/#/' /etc/rsyslog.conf
+RUN if [ -e /etc/rsyslog.conf ] ; then \
+        sed -i '/imklog/s/^/#/' /etc/rsyslog.conf ; \
+    fi
 
 ###############################################################
 
@@ -1105,8 +1106,14 @@ RUN sed -i '/imklog/s/^/#/' /etc/rsyslog.conf
 #      && apt autoremove -y \
 #      && rm -rf /var/lib/apt/lists/*
 
-#RUN pip3 install \
-#      jupyterlab
+## # Alveo-PYNQ
+## RUN --mount=type=cache,target=/root/.cache \
+##     pip3 install \
+##         pynq \
+##         pynq-alveo-examples \
+##         pynq-compute-labs
+
+COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
 
 # Set bash as a default shell for AIE tools
 RUN echo "dash dash/sh boolean false" | debconf-set-selections \
@@ -1115,17 +1122,3 @@ RUN echo "dash dash/sh boolean false" | debconf-set-selections \
 ###############################################################
 
 CMD ["/usr/bin/supervisord"]
-
-## ## # Alveo-PYNQ
-## RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
-##     conda create -n pynq && \
-##     conda activate pynq && \
-##     python3 -m pip install --upgrade pip && \
-##     pip3 install --use-feature=2020-resolver \
-##       pynq \
-##       pynq-alveo-examples \
-##       pynq-compute-labs
-## 
-## COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
-
-
