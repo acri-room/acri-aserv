@@ -36,7 +36,8 @@ ARG CARD=${CARD:-no}
 ## ubuntu_base
 ##===========================================================================
 
-FROM ubuntu:20.04 as base
+#FROM ${BASE:-ubuntu:20.04} as base
+FROM ubuntu:18.04 as base
 
 SHELL ["/bin/bash", "-c"]
 
@@ -182,6 +183,53 @@ RUN --mount=type=cache,target=/root/.cache \
       scipy \
       setuptools \
       wheel
+
+# Install xrdp from source to avoid SIGSEGV
+# https://github.com/neutrinolabs/xrdp/issues/1501
+#RUN --mount=type=cache,target=/var/lib/apt/lists \
+#    --mount=type=cache,target=/var/cache/apt/archives \
+#    apt-get update -y && apt-get install -y \
+#        git autoconf libtool pkg-config gcc g++ make  libssl-dev libpam0g-dev \
+#        libjpeg-dev libx11-dev libxfixes-dev libxrandr-dev  flex bison libxml2-dev \
+#        intltool xsltproc xutils-dev python-libxml2 g++ xutils libfuse-dev \
+#        libmp3lame-dev nasm libpixman-1-dev xserver-xorg-dev libopus-dev
+#
+#RUN --mount=type=cache,target=/var/lib/apt/lists \
+#    --mount=type=cache,target=/var/cache/apt/archives \
+#    apt-get remove -y xrdp \
+#    && VER=0.9.13.1 \
+#    && URL=https://github.com/neutrinolabs/xrdp/releases/download/v$VER/xrdp-$VER.tar.gz \
+#    && TMP=/tmp/xrdp/$(echo $URL | sed 's/^.*[=\/]//') \
+#    && mkdir -p /tmp/xrdp \
+#    && cd /tmp/xrdp \
+#    && wget $URL -O $TMP \
+#    && tar xf $TMP \
+#    && cd /tmp/xrdp/xrdp-$VER \
+#    && ./bootstrap \
+#    && ./configure \
+#      --enable-ipv6 \
+#      --enable-jpeg \
+#      --enable-fuse \
+#      --enable-rfxcodec \
+#      --enable-opus \
+#      --enable-painter \
+#      --enable-vsock \
+#      --build=x86_64-linux-gnu \
+#      --prefix=/usr \
+#      --includedir=/usr/include \
+#      --mandir=/usr/share/man \
+#      --infodir=/usr/share/info \
+#      --sysconfdir=/etc \
+#      --localstatedir=/var \
+#      --disable-silent-rules \
+#      --libdir=/usr/lib/x86_64-linux-gnu \
+#      --libexecdir=/usr/lib/x86_64-linux-gnu \
+#      --disable-maintainer-mode \
+#      --disable-dependency-tracking \
+#      --with-socketdir=/run/xrdp/sockdir \
+#    && make \
+#    && make install \
+#    && rm -rf /tmp/xrdp
 
 ##===========================================================================
 ## vai_base_2x
@@ -1089,7 +1137,11 @@ COPY files/vnc.conf /etc/vnc.conf
 EXPOSE 3389 5901
 
 RUN mkdir -p /var/run/sshd /var/run/dbus
-RUN rm -rf /var/run/dbus/pid
+
+RUN --mount=type=cache,target=/var/lib/apt/lists \
+    --mount=type=cache,target=/var/cache/apt/archives \
+    apt-get update -y && apt-get install -y \
+        rsyslog
 
 RUN if [ -e /etc/rsyslog.conf ] ; then \
         sed -i '/imklog/s/^/#/' /etc/rsyslog.conf ; \
