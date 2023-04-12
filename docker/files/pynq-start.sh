@@ -13,5 +13,8 @@ fi
 rsync -ahvu --progress /tools/repo/Xilinx/Alveo-PYNQ/pynq_alveo_examples/notebooks $scratch/pynq-notebooks
 cd $scratch/pynq-notebooks/notebooks
 
+# Fix platform path
+sed -i "s|platform = glob.glob.*|platform = \\\\\"$(readlink -f /opt/xilinx/platforms/$(hostname -s))\\\\\"\"|" 4_building_and_emulation/1-building-with-vitis.ipynb
+
 jupyter lab --ip 127.0.0.1
 
