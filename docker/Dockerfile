@@ -1159,11 +1159,9 @@ RUN if [ -e /etc/rsyslog.conf ] ; then \
 #      && rm -rf /var/lib/apt/lists/*
 
 ## # Alveo-PYNQ
-## RUN --mount=type=cache,target=/root/.cache \
-##     pip3 install \
-##         pynq \
-##         pynq-alveo-examples \
-##         pynq-compute-labs
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install \
+        pynq
 
 COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
 

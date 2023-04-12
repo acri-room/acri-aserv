@@ -15,6 +15,7 @@ function update_repo {
   local site=$1
   local user=$2
   local repo=$3
+  local branch=$4
   local u_dir=$repo_dir/$user
   local r_dir=$repo_dir/$user/$repo
   echo Updating repo $user/$repo...
@@ -25,6 +26,9 @@ function update_repo {
     pushd $r_dir > /dev/null
     echo -n "  "
     git pull --all
+    if [[ -n $branch ]] ; then
+      git checkout $branch
+    fi
     popd > /dev/null
   fi
 }
@@ -43,7 +47,7 @@ make_dir $repo_dir
 make_dir $data_dir
 
 update_repo github.com Xilinx Vitis_Libraries
-update_repo github.com Xilinx Vitis-Tutorials
+update_repo github.com Xilinx Vitis-Tutorials 2022.2
 update_repo github.com Xilinx Vitis-In-Depth-Tutorial
 update_repo github.com Xilinx Vitis_Accel_Examples
 update_repo github.com Xilinx Vitis-AI-Tutorials
