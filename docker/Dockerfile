@@ -170,8 +170,19 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
 RUN update-locale LANG=ja_JP.UTF-8
 RUN locale-gen en_US.UTF-8
 
+RUN --mount=type=cache,target=/root/downloads \
+    URL=https://github.com/conda-forge/miniforge/releases/download/4.10.3-5/Mambaforge-4.10.3-5-Linux-x86_64.sh \
+    && wget "$URL" -O /tmp/miniconda.sh \
+    && /bin/bash /tmp/miniconda.sh -b -p /opt/conda \
+    && . /opt/conda/etc/profile.d/conda.sh \
+    && conda install -y conda-build \
+    && rm /tmp/miniconda.sh \
+    && /opt/conda/bin/conda clean -y --force-pkgs-dirs
+
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install \
+    . /opt/conda/etc/profile.d/conda.sh && \
+    conda activate && \
+    pip install \
       Flask \
       jupyter \
       jupyterlab \
@@ -1160,7 +1171,9 @@ RUN if [ -e /etc/rsyslog.conf ] ; then \
 
 ## # Alveo-PYNQ
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install \
+    . /opt/conda/etc/profile.d/conda.sh && \
+    conda activate && \
+    pip install \
         pynq
 
 COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh

@@ -14,7 +14,10 @@ rsync -ahvu --progress /tools/repo/Xilinx/Alveo-PYNQ/pynq_alveo_examples/noteboo
 cd $scratch/pynq-notebooks/notebooks
 
 # Fix platform path
-sed -i "s|platform = glob.glob.*|platform = \\\\\"$(readlink -f /opt/xilinx/platforms/$(hostname -s))\\\\\"\"|" 4_building_and_emulation/1-building-with-vitis.ipynb
+sed -i "s|platform = glob.glob.*|platform = \\\\\"$(basename $(readlink -f /opt/xilinx/platforms/$(hostname -s)))\\\\\"\"|" 4_building_and_emulation/1-building-with-vitis.ipynb
+
+. /opt/conda/etc/profile.d/conda.sh
+conda activate
 
 jupyter lab --ip 127.0.0.1
 
