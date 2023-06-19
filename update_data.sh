@@ -68,6 +68,7 @@ update_repo github.com Xilinx HPC
 update_repo github.com Xilinx ACCL
 
 update_repo github.com acri-room aie-tutorial
+update_repo github.com acri-room hls-challenge-labs
 update_repo github.com anjn vlib-deflate-benchmark
 update_repo github.com kkos oniguruma
 update_repo github.com FPGAtestbed vck5000_sum_example
@@ -76,6 +77,6 @@ download_data http://sun.aei.polsl.pl/~sdeor/corpus/silesia.zip silesia.zip
 download_data https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz cifar-10-python.tar.gz
 download_data https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz tf-keras-datasets/mist.npz
 
-download_data https://acri-room.web.app/vadd.hw_emu.xilinx_vck5000_gen4x8_xdma_2_202210_1.xclbin acri-room/aie-tutorial/vadd.hw_emu.xilinx_vck5000_gen4x8_xdma_2_202210_1.xclbin
-download_data https://acri-room.web.app/vadd.hw.xilinx_vck5000_gen4x8_xdma_2_202210_1.xclbin acri-room/aie-tutorial/vadd.hw.xilinx_vck5000_gen4x8_xdma_2_202210_1.xclbin
+download_data https://acri-room.web.app/vadd.hw_emu.xilinx_vck5000_gen4x8_qdma_2_202220_1.xclbin acri-room/aie-tutorial/vadd.hw_emu.xilinx_vck5000_gen4x8_qdma_2_202220_1.xclbin
+download_data https://acri-room.web.app/vadd.hw.xilinx_vck5000_gen4x8_qdma_2_202220_1.xclbin acri-room/aie-tutorial/vadd.hw.xilinx_vck5000_gen4x8_qdma_2_202220_1.xclbin
 
