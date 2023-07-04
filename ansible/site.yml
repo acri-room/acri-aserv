@@ -1,0 +1,13 @@
+- name: Setup as
+  hosts: as*
+  become: yes
+
+  roles:
+    #- common
+    - desktop
+    #- dev
+    #- acri
+    #- xrdp
+    #- vnc
+    #- docker
+    #- alveo

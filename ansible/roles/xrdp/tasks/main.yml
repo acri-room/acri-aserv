@@ -1,0 +1,24 @@
+- name: Install apt packages
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - xrdp
+      #- xorgxrdp
+    state: present
+
+#- name: Copy /etc/xrdp/startwm.sh
+#  ansible.builtin.copy:
+#    src: startwm.sh
+#    dest: /etc/xrdp/startwm.sh
+
+- name: Copy /etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla
+  ansible.builtin.copy:
+    src: 45-allow-colord.pkla
+    dest: /etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla
+
+# https://c-nergy.be/blog/?p=13708
+- name: Add xrdp user to ssl-cert group
+  ansible.builtin.user:
+    name: xrdp
+    group: ssl-cert
+

@@ -1,0 +1,15 @@
+- name: Restart ypbind
+  service:
+    name: ypbind
+    state: restarted
+
+- name: Restart sshd
+  service:
+    name: sshd
+    state: restarted
+
+#- name: Restart autofs
+#  service:
+#    name: autofs
+#    state: restarted
+

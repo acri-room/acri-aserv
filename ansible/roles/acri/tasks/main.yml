@@ -1,0 +1,55 @@
+- name: Install apt packages
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - nis
+      #- autofs
+    state: present
+
+- name: Create a directory /etc/systemd/system/rpcbind.socket.d
+  ansible.builtin.file:
+    path: /etc/systemd/system/rpcbind.socket.d
+    state: directory
+    mode: '0755'
+
+# A workaround for systemd-sysusers timeout
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=950822#47
+- name: Copy /etc/systemd/system/rpcbind.socket.d/rpcbind.conf
+  ansible.builtin.copy:
+    src: rpcbind.conf
+    dest: /etc/systemd/system/rpcbind.socket.d/rpcbind.conf
+
+- name: Copy /etc/yp.conf
+  ansible.builtin.copy:
+    src: yp.conf
+    dest: /etc/yp.conf
+  notify: Restart ypbind
+
+- name: Enable ypbind
+  ansible.builtin.service:
+    name: ypbind
+    enabled: yes
+
+- name: Copy /etc/nsswitch.conf
+  ansible.builtin.copy:
+    src: nsswitch.conf
+    dest: /etc/nsswitch.conf
+
+- name: Create /etc/defaultdomain
+  ansible.builtin.copy:
+    content: 'acri.c.titech.ac.jp'
+    dest: /etc/defaultdomain
+
+#- name: Edit /etc/auto.master
+#  ansible.builtin.blockinfile:
+#    path: /etc/auto.master
+#    block: |
+#      /home yp:auto.home
+#  notify: Restart autofs
+
+- name: Edit /etc/ssh/sshd_config
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regex: ^PasswordAuthentication
+    line: PasswordAuthentication yes
+  notify: Restart sshd

@@ -1,0 +1,15 @@
+version: 1
+config:
+  - type: physical
+    name: eth0
+    optional: true
+    subnets:
+      - type: static
+        ipv4: true
+        address: %ADDRESS%
+        netmask: 255.255.0.0
+        gateway: 172.16.1.1
+        control: auto
+  - type: nameserver
+    address: 172.16.2.1
+

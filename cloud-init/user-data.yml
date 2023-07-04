@@ -1,0 +1,10 @@
+#cloud-config
+
+packages:
+  - openssh-server
+
+users:
+  - name: root
+    lock_passwd: true
+    ssh_authorized_keys:
+      - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7oqJj0zwxbqqYC1KAKyNVu4BP4ef0BxtJM/niMwXNy6lhC7FX67sj0+7iuOCpfMxZ+SQxxbgs0Vz1oUjtCJb2UO3EWyL7kRS1lo4A3mny6OYvJ7iUaoAr/37tDWMJIF6Q5QZiiGW/C5GAKQNwV2VPI861k/zAvw3T+PSjvdXN0HGd69MUruWcffNERXNSG2aFBYF591k1WUYYllShlG2whEhHGygQRsVztmuUMeUmvc/24U9KQVjnJDL3qubdfLPZQMnov4YtIIRMmHUN96nDMfFK/UEDZuEU0IRQAkcASK2NX34boidnH/CNBXRxPXMRb+8AOHVGmKJgKsEW+eZj'

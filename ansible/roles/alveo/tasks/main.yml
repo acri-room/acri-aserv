@@ -1,0 +1,59 @@
+# XRT
+- name: Install XRT deb from URL
+  ansible.builtin.apt:
+    deb: "{{ xrt_deb_url }}"
+    allow_downgrade: true
+  when: xrt_deb_url is defined
+
+# XRT APU
+- name: Install XRT APU deb from URL
+  ansible.builtin.apt:
+    deb: "{{ xrt_apu_deb_url }}"
+    allow_downgrade: true
+  when: xrt_apu_deb_url is defined
+
+# Platform
+- name: Create temporary directory
+  tempfile:
+    state: directory
+    prefix: platform
+  register: platform_tmp
+  notify: Clean up platform temporary directory
+
+- name: Extract deployment target plaform packages tarballs
+  unarchive:
+    src: "{{ platform_tgz_url }}"
+    dest: "{{ platform_tmp.path }}"
+    remote_src: true
+    list_files: true
+  register: platform_debs
+  when: platform_tgz_url is defined
+
+- name: Install Alveo platform debs
+  ansible.builtin.apt:
+    deb: "{{ item }}"
+    allow_downgrade: true
+  with_items: "{{ platform_debs.files | product([platform_tmp.path]) | map('reverse') | map('path_join') }}"
+  when: platform_tgz_url is defined
+
+# XRM
+- name: Install XRM deb from URL
+  ansible.builtin.apt:
+    deb: "{{ xrm_deb_url }}"
+    allow_downgrade: true
+  when: xrm_deb_url is defined
+
+# Vitis AI xclbins
+- name: Extract xclbins tarballs
+  unarchive:
+    src: "{{ vai_xclbins_tgz_url }}"
+    dest: /
+    remote_src: true
+  when: vai_xclbins_tgz_url is defined
+
+- name: Create a directory
+  ansible.builtin.file:
+    path: /opt/xilinx/dsa
+    state: directory
+    mode: '0755'
+

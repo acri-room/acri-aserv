@@ -1,0 +1,5 @@
+- name: Clean up platform temporary directory
+  file:
+    path: "{{ platform_tmp.path }}"
+    state: absent
+

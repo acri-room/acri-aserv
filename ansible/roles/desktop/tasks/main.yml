@@ -1,0 +1,41 @@
+# Workaround for the acpi-support hang issue
+- name: Install acpi-support
+  ansible.builtin.shell: nohup apt install -y acpi-support acpid & sleep 15 ; rm -rf /etc/acpi/events ; wait
+  args:
+    executable: /bin/bash
+
+- name: Install apt packages
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - gnome-icon-theme
+      - gnuplot
+      - gtkterm
+      - gtkwave
+      - ibus-mozc
+      - ubuntu-desktop
+      - libcanberra-gtk-module
+      - libcanberra-gtk3-module
+      - vlc
+      - xsel
+      - zenity
+    state: present
+
+# Chrome
+- name: Add Apt signing key
+  ansible.builtin.apt_key:
+    url: "https://dl.google.com/linux/linux_signing_key.pub"
+    state: present
+
+- name: Add repository into sources list
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
+    state: present
+    filename: google-chrome
+
+- name: Install google-chrome-stable
+  ansible.builtin.apt:
+    name: "google-chrome-stable"
+    state: latest
+    update_cache: true
+

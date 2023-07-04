@@ -1,0 +1,20 @@
+- name: Create /etc/vnc directory
+  file:
+    path: '/etc/vnc'
+    state: directory
+
+- name: Copy /etc/vnc.conf
+  ansible.builtin.copy:
+    src: vnc.conf
+    dest: /etc/vnc.conf
+
+- name: Copy /etc/vnc/xstartup
+  ansible.builtin.copy:
+    src: xstartup
+    dest: /etc/vnc/xstartup
+
+- name: Copy /etc/X11/Xvnc-session
+  ansible.builtin.copy:
+    src: Xvnc-session
+    dest: /etc/X11/Xvnc-session
+
