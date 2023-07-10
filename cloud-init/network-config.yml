@@ -1,7 +1,7 @@
 version: 1
 config:
   - type: physical
-    name: eth0
+    name: eth1
     optional: true
     subnets:
       - type: static

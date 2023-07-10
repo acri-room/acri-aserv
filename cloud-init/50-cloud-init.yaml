@@ -1,0 +1,10 @@
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses: [%ADDRESS%/16]
+      gateway4: 172.16.1.1
+      nameservers:
+        search: [acri.c.titech.ac.jp]
+        addresses: [172.16.2.1,131.112.125.58]
