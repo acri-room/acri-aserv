@@ -18,6 +18,7 @@
       - libcanberra-gtk3-module
       - vlc
       - xsel
+      - xclip
       - zenity
     state: present
 
