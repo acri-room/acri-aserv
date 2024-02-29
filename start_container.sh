@@ -177,8 +177,8 @@ video_gid=$(getent group video | awk -F: '{print $3}')
 cat << EOF | $LXC config set $hostname raw.idmap -
 uid 30000-40000 30000-40000
 uid 50000-60000 50000-60000
-gid $render_gid $render_gid
-gid $video_gid $video_gid
+gid $render_gid 110
+gid $video_gid 44
 gid 30000 30000
 gid 50000 50000
 EOF
@@ -233,17 +233,18 @@ $LXC start $hostname
 
 echo Info: Started, date=$(date)
 
+# Add environment variables
+$LXC file pull $hostname/etc/environment /tmp/$hostname.environment
+echo 'PIP_INDEX_URL="http://fserv9:3141/root/pypi/+simple/"' >> /tmp/$hostname.environment
+echo 'PIP_TRUSTED_HOST=fserv9' >> /tmp/$hostname.environment
+echo 'PIP_NO_CACHE_DIR=1' >> /tmp/$hostname.environment
+$LXC file push /tmp/$hostname.environment $hostname/etc/environment
+
 # Wait
 sleep 60
 
-# Update /etc/subuid and /etc/subgid for rootless Docker
-$LXC exec $hostname /usr/local/bin/update_subugids
-
 # Add user to render and video group
-$LXC exec $hostname usermod -a -G render,video $user
+$LXC exec $hostname -- usermod -a -G render,video $user
 
-# Add environment variables
-$LXC file pull $hostname/etc/environment /tmp/$hostname.environment
-echo 'PIP_INDEX_URL="http://aserv6:3141/root/pypi/+simple/"' >> /tmp/$hostname.environment
-$LXC file push /tmp/$hostname.environment $hostname/etc/environment
-
+# Update /etc/subuid and /etc/subgid for rootless Docker
+$LXC exec $hostname -- /usr/local/bin/update_subugids

@@ -4,6 +4,8 @@ set -e
 cur=$(dirname $(readlink -f $0))
 host=$(hostname -s)
 
+#test=ando
+
 # Alveo container
 if [[ $(cat container_config.yml | yq ".$host") != "null" ]] ;then
     for server in $(cat container_config.yml | yq -r ".$host | keys[]") ; do
@@ -13,6 +15,6 @@ if [[ $(cat container_config.yml | yq ".$host") != "null" ]] ;then
 	    #eval echo $key = \$$key
         done
 
-        mem=$mem cpu=$cpu if=$if driver=$driver $cur/start_container.sh $server $ip
+        mem=$mem cpu=$cpu if=$if driver=$driver $cur/start_container.sh $server $ip $test
     done
 fi
