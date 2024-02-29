@@ -4,10 +4,11 @@
 
   roles:
     #- common
-    - desktop
+    #- desktop
     #- dev
     #- acri
     #- xrdp
     #- vnc
     #- docker
     #- alveo
+    - rocm

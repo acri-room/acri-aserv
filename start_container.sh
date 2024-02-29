@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 # Usage
 if [[ $# -lt 2 ]] ; then
@@ -59,13 +60,15 @@ fi
 echo Info: Start user container: image=$hostname, hostname=$hostname, ip=$ip, user=$user, date=$(date)
 
 # Check XRT version
-xrt_ver=$(/opt/xilinx/xrt/bin/xbutil --version | grep -i version | head -n 1 | awk '{print $NF}')
-if [[ $xrt_ver = "`echo -e \"$xrt_ver\n2.11.634\" | sort -V | head -n 1`" ]] ; then
-    # <= 2021.1
-    xrt_ver=1
-else
-    # >= 2021.2
-    xrt_ver=2
+if [[ $driver == "xrt" ]] ; then
+    xrt_ver=$(/opt/xilinx/xrt/bin/xbutil --version | grep -i version | head -n 1 | awk '{print $NF}')
+    if [[ $xrt_ver = "`echo -e \"$xrt_ver\n2.11.634\" | sort -V | head -n 1`" ]] ; then
+        # <= 2021.1
+        xrt_ver=1
+    else
+        # >= 2021.2
+        xrt_ver=2
+    fi
 fi
 
 # Clean scratch area
@@ -83,28 +86,30 @@ if [[ ! -e $LSPCI ]] ; then
     LSPCI=/usr/sbin/lspci
 fi
 
-if [[ -z $SKIP_FPGA_RESET ]] ; then
-    if [[ $(hostname -s) != aserv5 ]] ; then
-        /usr/sbin/rmmod xocl || true
-        /usr/sbin/rmmod xclmgmt || true
-        /usr/sbin/modprobe xclmgmt
-    
-        if [[ $xrt_ver -eq 1 ]] ; then
-            /usr/sbin/modprobe xocl
-            yes | /opt/xilinx/xrt/bin/xbutil reset > /dev/null
+if [[ $driver == "xrt" ]] ; then
+    if [[ -z $SKIP_FPGA_RESET ]] ; then
+        if [[ $(hostname -s) != aserv5 ]] ; then
+            /usr/sbin/rmmod xocl || true
+            /usr/sbin/rmmod xclmgmt || true
+            /usr/sbin/modprobe xclmgmt
+        
+            if [[ $xrt_ver -eq 1 ]] ; then
+                /usr/sbin/modprobe xocl
+                yes | /opt/xilinx/xrt/bin/xbutil reset > /dev/null
+            else
+                for addr in $($LSPCI -D -d 10ee: -s .0 | awk '{print $1}') ; do
+                    /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
+                done
+                /usr/sbin/modprobe xocl
+                for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
+                    /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
+                done
+            fi
         else
-            for addr in $($LSPCI -D -d 10ee: -s .0 | awk '{print $1}') ; do
-                /opt/xilinx/xrt/bin/xbmgmt reset --device $addr --force > /dev/null
-            done
-            /usr/sbin/modprobe xocl
             for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
                 /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
             done
         fi
-    else
-        for addr in $($LSPCI -D -d 10ee: -s .1 | awk '{print $1}') ; do
-            /opt/xilinx/xrt/bin/xbutil reset --device $addr --force > /dev/null
-        done
     fi
 fi
 
@@ -123,21 +128,23 @@ sed "s/%USER%/$user/" $cur/xrdp.ini > /tmp/$hostname.xrdp.ini
 chmod 644 /tmp/$hostname.xrdp.ini
 
 # Find driver
-if [[ $xrt_ver -eq 1 ]] ; then
-    xocl=$(/opt/xilinx/xrt/bin/xbutil scan | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
-else
-    xocl=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
-fi
-xocl="/dev/dri/renderD$xocl"
-if [[ ! -e $xocl ]] ; then
-    echo "Error: can't find xocl"
-    exit 1
-fi
-
-xclmgmt=$(ls -1 /dev/xclmgmt* | head -n 1)
-if [[ ! -e $xclmgmt ]] ; then
-    echo "Error: can't find xclmgmt"
-    exit 1
+if [[ $driver == "xrt" ]] ; then
+    if [[ $xrt_ver -eq 1 ]] ; then
+        xocl=$(/opt/xilinx/xrt/bin/xbutil scan | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
+    else
+        xocl=$(/opt/xilinx/xrt/bin/xbutil examine | grep "xilinx_[uv]" | sed -r 's/^.*inst=([0-9]*).*/\1/')
+    fi
+    xocl="/dev/dri/renderD$xocl"
+    if [[ ! -e $xocl ]] ; then
+        echo "Error: can't find xocl"
+        exit 1
+    fi
+    
+    xclmgmt=$(ls -1 /dev/xclmgmt* | head -n 1)
+    if [[ ! -e $xclmgmt ]] ; then
+        echo "Error: can't find xclmgmt"
+        exit 1
+    fi
 fi
 
 # Memory
@@ -165,9 +172,13 @@ sed "s/%ADDRESS%/$ip/" $cur/cloud-init/50-cloud-init.yaml > /tmp/$hostname.50-cl
 $LXC file push /tmp/$hostname.50-cloud-init.yaml $hostname/etc/netplan/50-cloud-init.yaml
 
 # idmap for users
+render_gid=$(getent group render | awk -F: '{print $3}')
+video_gid=$(getent group video | awk -F: '{print $3}')
 cat << EOF | $LXC config set $hostname raw.idmap -
 uid 30000-40000 30000-40000
 uid 50000-60000 50000-60000
+gid $render_gid $render_gid
+gid $video_gid $video_gid
 gid 30000 30000
 gid 50000 50000
 EOF
@@ -183,9 +194,14 @@ done
 $LXC config device add $hostname home disk source=/home path=/home recursive=true
 
 # mount devices
-$LXC config device add $hostname xfpga   disk      source=/dev/xfpga path=/dev/xfpga
-$LXC config device add $hostname xocl    unix-char source=$xocl path=$xocl mode=0666
-$LXC config device add $hostname xclmgmt unix-char source=$xclmgmt path=$xclmgmt mode=0666
+if [[ $driver == "xrt" ]] ; then
+    $LXC config device add $hostname xfpga   disk      source=/dev/xfpga path=/dev/xfpga
+    $LXC config device add $hostname xocl    unix-char source=$xocl path=$xocl mode=0666
+    $LXC config device add $hostname xclmgmt unix-char source=$xclmgmt path=$xclmgmt mode=0666
+elif [[ $driver == "rocm" ]] ; then
+    $LXC config device add $hostname kfd disk source=/dev/kfd path=/dev/kfd
+    $LXC config device add $hostname dri disk source=/dev/dri path=/dev/dri
+fi
 
 # for Docker
 $LXC config set $hostname security.nesting=true security.syscalls.intercept.mknod=true security.syscalls.intercept.setxattr=true
@@ -217,6 +233,17 @@ $LXC start $hostname
 
 echo Info: Started, date=$(date)
 
-# Update /etc/subuid and /etc/subgid for rootless Docker
+# Wait
 sleep 60
+
+# Update /etc/subuid and /etc/subgid for rootless Docker
 $LXC exec $hostname /usr/local/bin/update_subugids
+
+# Add user to render and video group
+$LXC exec $hostname usermod -a -G render,video $user
+
+# Add environment variables
+$LXC file pull $hostname/etc/environment /tmp/$hostname.environment
+echo 'PIP_INDEX_URL="http://aserv6:3141/root/pypi/+simple/"' >> /tmp/$hostname.environment
+$LXC file push /tmp/$hostname.environment $hostname/etc/environment
+

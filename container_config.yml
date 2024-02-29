@@ -1,0 +1,48 @@
+aserv1:
+  as001:
+    ip: 172.16.6.1
+    cpu: 8
+    mem: 60
+    if: eno1
+    driver: xrt
+
+aserv2:
+  as002:
+    ip: 172.16.6.2
+    cpu: 8
+    mem: 60
+    if: eno1
+    driver: xrt
+
+aserv3:
+  as003:
+    ip: 172.16.6.3
+    cpu: 8
+    mem: 60
+    if: eno1
+    driver: xrt
+
+aserv4:
+  as004:
+    ip: 172.16.6.4
+    cpu: 8
+    mem: 60
+    if: eno1
+    driver: xrt
+
+aserv5:
+  as005:
+    ip: 172.16.6.5
+    cpu: 8
+    mem: 60
+    if: enp0s31f6
+    driver: xrt
+
+aserv6:
+  as006:
+    ip: 172.16.6.6
+    cpu: 16
+    mem: 120
+    if: enp8s0
+    driver: rocm
+

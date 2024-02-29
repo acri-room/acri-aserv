@@ -5,22 +5,14 @@ cur=$(dirname $(readlink -f $0))
 host=$(hostname -s)
 
 # Alveo container
-args=$(grep $host $cur/container_config.txt | cut -d " " -f 2-3)
-cpu=$(grep $host $cur/container_config.txt | cut -d " " -f 4)
-mem=$(grep $host $cur/container_config.txt | cut -d " " -f 5)
-if=$(grep $host $cur/container_config.txt | cut -d " " -f 6)
+if [[ $(cat container_config.yml | yq ".$host") != "null" ]] ;then
+    for server in $(cat container_config.yml | yq -r ".$host | keys[]") ; do
+        #echo $server
+	for key in ip cpu mem "if" driver ; do
+            eval $key=$(cat container_config.yml | yq -r ".$host | .$server | .$key")
+	    #eval echo $key = \$$key
+        done
 
-if [[ $args != "" ]] ; then
-  mem=$mem cpu=$cpu if=$if $cur/start_container.sh $args
+        mem=$mem cpu=$cpu if=$if driver=$driver $cur/start_container.sh $server $ip
+    done
 fi
-
-# Tool container
-args=$(grep $host $cur/container_config_tool.txt | cut -d " " -f 2-3)
-cpu=$(grep $host $cur/container_config_tool.txt | cut -d " " -f 4)
-mem=$(grep $host $cur/container_config_tool.txt | cut -d " " -f 5)
-if=$(grep $host $cur/container_config_tool.txt | cut -d " " -f 6)
-
-if [[ $args != "" ]] ; then
-  mem=$mem cpu=$cpu if=$if $cur/start_container_tool.sh $args
-fi
-

@@ -1,0 +1,8 @@
+
+- name: Install amdgpu-install
+  ansible.builtin.apt:
+    deb: https://repo.radeon.com/amdgpu-install/5.7.1/ubuntu/jammy/amdgpu-install_5.7.50701-1_all.deb
+    allow_downgrade: true
+
+- name: Install ROCm
+  ansible.builtin.command: amdgpu-install --usecase=rocm --rocmrelease=5.7.1 --no-dkms -y
