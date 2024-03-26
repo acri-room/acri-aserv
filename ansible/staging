@@ -1,2 +1,3 @@
 [servers]
-as005 ansible_host=10.151.114.5
+#as005 ansible_host=10.151.114.102
+staging ansible_host=10.151.114.32
