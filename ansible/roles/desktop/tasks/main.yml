@@ -40,3 +40,33 @@
     state: latest
     update_cache: true
 
+# Firefox
+# https://yuzu441.hateblo.jp/entry/2022/05/05/180000
+- name: Remove firefox from snap
+  community.general.snap:
+    name: firefox
+    state: absent
+
+- name: Add firefox repository from PPA and install its signing key
+  ansible.builtin.apt_repository:
+    repo: ppa:mozillateam/ppa
+
+- name: Change priority
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/99mozillateamppa
+    content: |
+      Package: firefox*
+      Pin: release o=LP-PPA-mozillateam
+      Pin-Priority: 501
+      
+      Package: firefox*
+      Pin: release o=Ubuntu
+      Pin-Priority: -1
+
+- name: Install firefox
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - firefox
+    state: present
+
