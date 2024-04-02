@@ -1,6 +1,0 @@
-aserv1 as001 172.16.6.1 8 60 eno1
-aserv2 as002 172.16.6.2 8 60 eno1
-aserv3 as003 172.16.6.3 8 60 eno1
-aserv4 as004 172.16.6.4 8 60 eno1
-aserv5 as005 172.16.6.5 8 60 enp0s31f6
-aserv6 as006 172.16.6.6 16 120 enp8s0

@@ -1,48 +1,108 @@
 aserv1:
-  as001:
-    ip: 172.16.6.1
-    cpu: 8
-    mem: 60
+  config:
     if: eno1
-    driver: xrt
+    scratch_gb: 256
+
+  servers:
+    as001:
+      ip: 172.16.6.1
+      cpu: 8
+      mem: 60
+      driver: xrt
+
+    as101:
+      ip: 172.16.6.101
+      cpu: 8
+      mem: 60
+      share: true
 
 aserv2:
-  as002:
-    ip: 172.16.6.2
-    cpu: 8
-    mem: 60
+  config:
     if: eno1
-    driver: xrt
+    scratch_gb: 256
+
+  servers:
+    as002:
+      ip: 172.16.6.2
+      cpu: 8
+      mem: 60
+      driver: xrt
+
+    as102:
+      ip: 172.16.6.102
+      cpu: 8
+      mem: 60
+      share: true
 
 aserv3:
-  as003:
-    ip: 172.16.6.3
-    cpu: 8
-    mem: 60
+  config:
     if: eno1
-    driver: xrt
+    scratch_gb: 256
+
+  servers:
+    as003:
+      ip: 172.16.6.3
+      cpu: 8
+      mem: 60
+      driver: xrt
+
+    as103:
+      ip: 172.16.6.103
+      cpu: 8
+      mem: 60
+      share: true
 
 aserv4:
-  as004:
-    ip: 172.16.6.4
-    cpu: 8
-    mem: 60
+  config:
     if: eno1
-    driver: xrt
+    scratch_gb: 256
+
+  servers:
+    as004:
+      ip: 172.16.6.4
+      cpu: 8
+      mem: 60
+      driver: xrt
+
+    as104:
+      ip: 172.16.6.104
+      cpu: 8
+      mem: 60
+      share: true
 
 aserv5:
-  as005:
-    ip: 172.16.6.5
-    cpu: 8
-    mem: 60
+  config:
     if: enp0s31f6
-    driver: xrt
+    scratch_gb: 256
+
+  servers:
+    as005:
+      ip: 172.16.6.5
+      cpu: 8
+      mem: 60
+      driver: xrt
+
+    as105:
+      ip: 172.16.6.105
+      cpu: 8
+      mem: 60
+      share: true
 
 aserv6:
-  as006:
-    ip: 172.16.6.6
-    cpu: 16
-    mem: 120
+  config:
     if: enp8s0
-    driver: rocm
+    scratch_gb: 1024
+
+  servers:
+    as006:
+      ip: 172.16.6.6
+      cpu: 20
+      mem: 120
+      driver: rocm
+
+    as106:
+      ip: 172.16.6.106
+      cpu: 4
+      mem: 4
+      share: true
 

@@ -37,6 +37,7 @@
       - libncursesw5
       - libopenexr-dev
       - libpng-dev
+      - libprotobuf-dev
       - libssl-dev
       - libswscale-dev
       - libtiff-dev
@@ -50,6 +51,8 @@
       - opencl-clhpp-headers
       - opencl-headers
       - pocl-opencl-icd
+      - pybind11-dev
+      - protobuf-compiler
       - ruby-dev
       - software-properties-common
       - tig

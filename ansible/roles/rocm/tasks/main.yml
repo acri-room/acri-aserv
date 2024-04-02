@@ -6,3 +6,10 @@
 
 - name: Install ROCm
   ansible.builtin.command: amdgpu-install --usecase=rocm --rocmrelease=5.7.1 --no-dkms -y
+
+- name: Install apt packages
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - libstdc++-12-dev
+    state: present

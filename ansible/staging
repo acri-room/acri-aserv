@@ -1,2 +1,2 @@
 [servers]
-as ansible_host=10.154.42.244 ansible_user=root
+as ansible_host=10.154.42.245 ansible_user=root
