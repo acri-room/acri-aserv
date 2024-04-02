@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 
 # Usage
 if [[ $# -lt 2 ]] ; then
@@ -171,18 +170,18 @@ if [[ -z $cpu ]] ; then
     cpu=$(printf %.3f $(($(fgrep 'processor' /proc/cpuinfo | wc -l)-2)))
 fi
 
-$LXC init as $hostname
+$LXC init as $hostname > /dev/null
 
 $LXC config set $hostname user.user-data - < $cur/cloud-init/user-data.yml
 
 # network
-$LXC config device add $hostname eth0 nic nictype=macvlan parent=$if
+$LXC config device add $hostname eth0 nic nictype=macvlan parent=$if -q
 
 echo "network: {config: disabled}" > /tmp/$hostname.99-disable-network-config.cfg
-$LXC file push /tmp/$hostname.99-disable-network-config.cfg $hostname/etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+$LXC file push /tmp/$hostname.99-disable-network-config.cfg $hostname/etc/cloud/cloud.cfg.d/99-disable-network-config.cfg -q
 
 sed "s/%ADDRESS%/$ip/" $cur/cloud-init/50-cloud-init.yaml > /tmp/$hostname.50-cloud-init.yaml
-$LXC file push /tmp/$hostname.50-cloud-init.yaml $hostname/etc/netplan/50-cloud-init.yaml
+$LXC file push /tmp/$hostname.50-cloud-init.yaml $hostname/etc/netplan/50-cloud-init.yaml -q
 
 # idmap for users
 render_gid=$(getent group render | awk -F: '{print $3}')
@@ -199,21 +198,21 @@ EOF
 # mount disks
 for dir in tools scratch opt/xilinx/platforms data ; do
     if [[ -e /$dir ]] ; then
-        $LXC config device add $hostname $(basename $dir) disk source=$(readlink -f /$dir) path=/$dir
+        $LXC config device add $hostname $(basename $dir) disk source=$(readlink -f /$dir) path=/$dir -q
     fi
 done
 
 # mount autofs home
-$LXC config device add $hostname home disk source=/home path=/home recursive=true
+$LXC config device add $hostname home disk source=/home path=/home recursive=true -q
 
 # mount devices
 if [[ $driver == "xrt" ]] ; then
-    $LXC config device add $hostname xfpga   disk      source=/dev/xfpga path=/dev/xfpga
-    $LXC config device add $hostname xocl    unix-char source=$xocl path=$xocl mode=0666
-    $LXC config device add $hostname xclmgmt unix-char source=$xclmgmt path=$xclmgmt mode=0666
+    $LXC config device add $hostname xfpga   disk      source=/dev/xfpga path=/dev/xfpga -q
+    $LXC config device add $hostname xocl    unix-char source=$xocl path=$xocl mode=0666 -q
+    $LXC config device add $hostname xclmgmt unix-char source=$xclmgmt path=$xclmgmt mode=0666 -q
 elif [[ $driver == "rocm" ]] ; then
-    $LXC config device add $hostname kfd disk source=/dev/kfd path=/dev/kfd
-    $LXC config device add $hostname dri disk source=/dev/dri path=/dev/dri
+    $LXC config device add $hostname kfd disk source=/dev/kfd path=/dev/kfd -q
+    $LXC config device add $hostname dri disk source=/dev/dri path=/dev/dri -q
 fi
 
 # for Docker
@@ -226,8 +225,8 @@ $LXC config set $hostname limits.memory.enforce soft
 
 if [[ $share != "true" ]] ; then
     # limit login user
-    $LXC file push /tmp/$hostname.sshd_config $hostname/etc/ssh/sshd_config
-    $LXC file push /tmp/$hostname.xrdp.ini $hostname/etc/xrdp/xrdp.ini
+    $LXC file push /tmp/$hostname.sshd_config $hostname/etc/ssh/sshd_config -q
+    $LXC file push /tmp/$hostname.xrdp.ini $hostname/etc/xrdp/xrdp.ini -q
 fi
 
 # set config
@@ -240,8 +239,8 @@ for t in rsa dsa ecdsa ed25519 ; do
     if [[ ! -e $key_dir/ssh_host_${t}_key ]] ; then
         ssh-keygen -q -t $t -f $key_dir/ssh_host_${t}_key -C "" -N ""
     fi
-    $LXC file push $key_dir/ssh_host_${t}_key     $hostname/etc/ssh/ssh_host_${t}_key
-    $LXC file push $key_dir/ssh_host_${t}_key.pub $hostname/etc/ssh/ssh_host_${t}_key.pub
+    $LXC file push $key_dir/ssh_host_${t}_key     $hostname/etc/ssh/ssh_host_${t}_key -q
+    $LXC file push $key_dir/ssh_host_${t}_key.pub $hostname/etc/ssh/ssh_host_${t}_key.pub -q
 done
 
 $LXC start $hostname
@@ -253,7 +252,7 @@ $LXC file pull $hostname/etc/environment /tmp/$hostname.environment
 echo 'PIP_INDEX_URL="http://172.16.2.9:3141/root/pypi/+simple/"' >> /tmp/$hostname.environment
 echo 'PIP_TRUSTED_HOST=172.16.2.9' >> /tmp/$hostname.environment
 echo 'PIP_NO_CACHE_DIR=1' >> /tmp/$hostname.environment
-$LXC file push /tmp/$hostname.environment $hostname/etc/environment
+$LXC file push /tmp/$hostname.environment $hostname/etc/environment -q
 
 # Wait
 sleep 60
@@ -264,13 +263,13 @@ if [[ $driver == "rocm" ]] ; then
 fi
 
 # Update /etc/subuid and /etc/subgid for rootless Docker
-$LXC file push ./ansible/roles/docker/files/update_subugids.py $hostname/usr/local/bin/update_subugids
+$LXC file push $cur/ansible/roles/docker/files/update_subugids.py $hostname/usr/local/bin/update_subugids -q
 $LXC exec $hostname -- rm /etc/subuid
 $LXC exec $hostname -- rm /etc/subgid
 $LXC exec $hostname -- touch /etc/subuid
 $LXC exec $hostname -- touch /etc/subgid
 # Map render group
-$LXC exec $hostname -- /usr/local/bin/update_subugids --gid-maps 110:109
+$LXC exec $hostname -- /usr/local/bin/update_subugids --gid-maps 110:109 >&2
 
 $LXC exec $hostname -- mkdir -p /opt/xilinx/dsa
 $LXC exec $hostname -- mkdir -p /opt/xilinx/overlaybins

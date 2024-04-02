@@ -35,18 +35,22 @@ function stop_container() {
     LXC=/snap/bin/lxc
 
     if [[ $dry_run -eq 0 ]] ; then
-        $LXC stop $server --force > /dev/null 2>&1 || true
-        $LXC delete $server --force > /dev/null 2>&1 || true
+        container_status=$($LXC ls -f json | jq -rj ".[] | select(.name == \"$server\") | .status")
+        if [[ -n $container_status ]] ; then
+            echo Info: Stop user container: name=$server, date=$(date)
+            $LXC stop $server --force > /dev/null 2>&1 || true
+            $LXC delete $server --force > /dev/null 2>&1 || true
+        fi
     else
         echo $LXC stop $server --force
         echo $LXC delete $server --force
     fi
 }
 
-if [[ $(cat container_config.yml | yq ".$host") != "null" ]] ;then
+if [[ $(cat $cur/container_config.yml | yq ".$host") != "null" ]] ;then
     # Stop servers
-    for server in $(cat container_config.yml | yq -r ".$host.servers | keys[]") ; do
-	share=$(cat container_config.yml | yq -r ".$host.servers | .$server | .share")
+    for server in $(cat $cur/container_config.yml | yq -r ".$host.servers | keys[]") ; do
+	share=$(cat $cur/container_config.yml | yq -r ".$host.servers | .$server | .share")
 
 	if [[ -z $args_server ]] || [[ $args_server == $server ]] ; then
 	    if [[ -z $args_share ]] || [[ $args_share == $share ]] ; then
