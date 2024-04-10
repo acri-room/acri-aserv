@@ -75,3 +75,9 @@ download_data https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.
 download_data https://acri-room.web.app/vadd.hw_emu.xilinx_vck5000_gen4x8_xdma_2_202210_1.xclbin acri-room/aie-tutorial/vadd.hw_emu.xilinx_vck5000_gen4x8_xdma_2_202210_1.xclbin
 download_data https://acri-room.web.app/vadd.hw.xilinx_vck5000_gen4x8_xdma_2_202210_1.xclbin acri-room/aie-tutorial/vadd.hw.xilinx_vck5000_gen4x8_xdma_2_202210_1.xclbin
 
+download_data "https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_runtime_r3.0.0_image_video.tar.gz" vitis_ai/3.0/vitis_ai_runtime_r3.0.0_image_video.tar.gz
+download_data "https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r3.0.0_images.tar.gz" vitis_ai/3.0/vitis_ai_library_r3.0.0_images.tar.gz
+download_data "https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r3.0.0_video.tar.gz" vitis_ai/3.0/vitis_ai_library_r3.0.0_video.tar.gz
+
+download_data "https://www.xilinx.com/bin/public/openDownload?filename=resnet50-vck5000-DPUCVDX8H-6pe-aieDWC-r3.0.0.tar.gz" vitis_ai/3.0/models/resnet50-vck5000-DPUCVDX8H-6pe-aieDWC-r3.0.0.tar.gz
+

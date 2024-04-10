@@ -252,6 +252,12 @@ $LXC file pull $hostname/etc/environment /tmp/$hostname.environment
 echo 'PIP_INDEX_URL="http://172.16.2.9:3141/root/pypi/+simple/"' >> /tmp/$hostname.environment
 echo 'PIP_TRUSTED_HOST=172.16.2.9' >> /tmp/$hostname.environment
 echo 'PIP_NO_CACHE_DIR=1' >> /tmp/$hostname.environment
+#echo 'http_proxy=http://172.16.2.9:3128' >> /tmp/$hostname.environment
+#echo 'HTTP_PROXY=http://172.16.2.9:3128' >> /tmp/$hostname.environment
+#echo 'https_proxy=http://172.16.2.9:3128' >> /tmp/$hostname.environment
+#echo 'HTTPS_PROXY=http://172.16.2.9:3128' >> /tmp/$hostname.environment
+#echo 'no_proxy=localhost,127.0.0.1,172.16.2.9' >> /tmp/$hostname.environment
+#echo 'NO_PROXY=localhost,127.0.0.1,172.16.2.9' >> /tmp/$hostname.environment
 $LXC file push /tmp/$hostname.environment $hostname/etc/environment -q
 
 # Wait
