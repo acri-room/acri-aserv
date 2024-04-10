@@ -64,6 +64,7 @@ update_repo github.com Xilinx HPC
 update_repo github.com Xilinx ACCL
 
 update_repo github.com acri-room aie-tutorial
+update_repo github.com acri-room vai-tutorial
 update_repo github.com anjn vlib-deflate-benchmark
 update_repo github.com kkos oniguruma
 update_repo github.com FPGAtestbed vck5000_sum_example
