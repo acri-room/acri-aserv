@@ -53,3 +53,10 @@
     regex: ^PasswordAuthentication
     line: PasswordAuthentication yes
   notify: Restart sshd
+
+- name: AIE license
+  ansible.builtin.blockinfile:
+    path: /etc/profile
+    block: |
+      export XILINXD_LICENSE_FILE=2100@172.16.6.202:2100@172.16.6.205
+

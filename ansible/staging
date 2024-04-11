@@ -1,3 +1,2 @@
 [servers]
 as ansible_host=%ADDRESS% ansible_user=root
-

@@ -1,0 +1,27 @@
+---
+- hosts: fserv9
+
+  vars:
+    versions:
+      - '2022.1'
+      - '2022.2'
+      - '2023.1'
+
+  tasks:
+    - name: Vivado crash workaround - Add LD_PRELOAD
+      ansible.builtin.blockinfile:
+        path: /tools/Xilinx/Vivado/{{ item }}/bin/setupEnv.sh
+        block: |
+          export LD_PRELOAD=/lib/x86_64-linux-gnu/libudev.so.1:/lib/x86_64-linux-gnu/libc.so.6
+      loop: "{{ versions }}"
+
+    - name: Vivado crash workaround - Remove LD_PRELOAD
+      ansible.builtin.blockinfile:
+        path: /tools/Xilinx/Vivado/{{ item.0 }}/gnu/microblaze/lin/bin/{{ item.1 }}
+        insertafter: "^#!"
+        block: |
+          export LD_PRELOAD=
+      with_nested:
+        - "{{ versions }}"
+        - ['mb-addr2line', 'mb-ar', 'mb-as', 'mb-c++', 'mb-c++filt', 'mb-cpp', 'mb-dwp', 'mb-elfedit', 'mb-g++', 'mb-gcc', 'mb-gcc-ar', 'mb-gcc-nm', 'mb-gcov', 'mb-gcov-dump', 'mb-gcov-tool', 'mb-gdb-add-index', 'mb-ld', 'mb-ld.bfd', 'mb-ld.gold', 'mb-nm', 'mb-objcopy', 'mb-ranlib', 'mb-readelf', 'mb-size', 'mb-strings', 'mb-strip']
+

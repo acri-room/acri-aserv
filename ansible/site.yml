@@ -1,10 +1,12 @@
 - name: Setup as
-  hosts: as*
+  hosts:
+    - as*
+    - staging
   become: yes
 
   roles:
     #- common
-    - desktop
+    #- desktop
     #- dev
     #- acri
     #- xrdp
