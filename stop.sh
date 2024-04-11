@@ -12,6 +12,8 @@ args_server=
 args_share=
 dry_run=0
 
+YQ=/snap/bin/yq
+
 eval set -- "$VALID_ARGS"
 while [ : ]; do
     case "$1" in
@@ -47,10 +49,10 @@ function stop_container() {
     fi
 }
 
-if [[ $(cat $cur/container_config.yml | yq -oj | jq ".$host") != "null" ]] ;then
+if [[ $(cat $cur/container_config.yml | $YQ -oj | jq ".$host") != "null" ]] ;then
     # Stop servers
-    for server in $(cat $cur/container_config.yml | yq -oj | jq -r ".$host.servers | keys[]") ; do
-	share=$(cat $cur/container_config.yml | yq -oj | jq -r ".$host.servers | .$server | .share")
+    for server in $(cat $cur/container_config.yml | $YQ -oj | jq -r ".$host.servers | keys[]") ; do
+	share=$(cat $cur/container_config.yml | $YQ -oj | jq -r ".$host.servers | .$server | .share")
 
 	if [[ -z $args_server ]] || [[ $args_server == $server ]] ; then
 	    if [[ -z $args_share ]] || [[ $args_share == $share ]] ; then
