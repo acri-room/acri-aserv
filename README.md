@@ -1,3 +1,7 @@
+```
+snap install yq --channel=v4/stable
+```
+
 Setup
 =====
 

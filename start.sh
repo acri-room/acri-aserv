@@ -28,20 +28,20 @@ while [ : ]; do
     esac
 done
 
-if [[ $(cat $cur/container_config.yml | yq ".$host") != "null" ]] ;then
+if [[ $(cat $cur/container_config.yml | yq -oj | jq ".$host") != "null" ]] ;then
 
     # Host config
-    for config in $(cat $cur/container_config.yml | yq -r ".$host.config | keys[]") ; do
+    for config in $(cat $cur/container_config.yml | yq -oj | jq -r ".$host.config | keys[]") ; do
 	for key in "if" scratch_gb ; do
-            eval $key=$(cat $cur/container_config.yml | yq -r ".$host.config | .$key")
+            eval $key=$(cat $cur/container_config.yml | yq -oj | jq -r ".$host.config | .$key")
 	    #eval echo $key = \$$key
         done
     done
 
     # Start servers
-    for server in $(cat $cur/container_config.yml | yq -r ".$host.servers | keys[]") ; do
+    for server in $(cat $cur/container_config.yml | yq -oj | jq -r ".$host.servers | keys[]") ; do
 	for key in ip cpu mem driver share ; do
-            eval $key=$(cat $cur/container_config.yml | yq -r ".$host.servers | .$server | .$key")
+            eval $key=$(cat $cur/container_config.yml | yq -oj | jq -r ".$host.servers | .$server | .$key")
 	    #eval echo $key = \$$key
         done
 
