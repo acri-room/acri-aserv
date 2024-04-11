@@ -1,0 +1,2 @@
+[servers]
+fserv9 ansible_host=172.16.2.9
