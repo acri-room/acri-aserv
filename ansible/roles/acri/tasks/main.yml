@@ -60,3 +60,9 @@
     block: |
       export XILINXD_LICENSE_FILE=2100@172.16.6.202:2100@172.16.6.205
 
+- name: Edit /etc/hosts
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    block: |
+      131.112.16.100 www.acri.c.titech.ac.jp
+
