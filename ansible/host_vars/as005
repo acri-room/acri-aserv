@@ -1,5 +1,5 @@
 ---
-xrt_deb_url: https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.384_22.04-amd64-xrt.deb
+xrt_deb_url: https://www.xilinx.com/bin/public/openDownload?filename=xrt_202310.2.15.225_22.04-amd64-xrt.deb
 xrt_apu_deb_url: https://www.xilinx.com/bin/public/openDownload?filename=xrt-apu-vck5000_202220.2.14.384_petalinux_all.deb
 platform_tgz_url: https://www.xilinx.com/bin/public/openDownload?filename=xilinx-vck5000-gen4x8-qdma_2022.2_2022_1212_1124-all.deb.tar.gz
 
