@@ -9,6 +9,7 @@ if [[ $(cat $cur/container_config.yml | yq -oj | jq ".$host") != "null" ]] ;then
 
     lxc init as staging
     lxc config set staging security.nesting=true
+    #lxc config device add staging eth0 nic nictype=macvlan parent=$if
     lxc start staging
     sleep 1
     lxc list
