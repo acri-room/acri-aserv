@@ -1096,13 +1096,13 @@ RUN sed -i '/imklog/s/^/#/' /etc/rsyslog.conf
 ###############################################################
 
 # Add packages here
-#RUN apt-get update -y && apt-get install -y \
-#      gnupg2 \
-#      pass \
-#      libfdt1 \
-#      && apt autoclean -y \
-#      && apt autoremove -y \
-#      && rm -rf /var/lib/apt/lists/*
+# https://support.xilinx.com/s/article/73040?language=en_US
+RUN dpkg --add-architecture i386
+RUN apt-get update -y && apt-get install -y \
+      python gawk gcc git make net-tools libncurses5-dev tftpd zlib1g:i386 libssl-dev flex bison libselinux1 gnupg wget diffstat chrpath socat xterm autoconf libtool tar unzip texinfo zlib1g-dev gcc-multilib build-essential screen pax gzip \
+      && apt autoclean -y \
+      && apt autoremove -y \
+      && rm -rf /var/lib/apt/lists/*
 
 #RUN pip3 install \
 #      jupyterlab
