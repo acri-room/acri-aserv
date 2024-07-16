@@ -11,6 +11,7 @@ args=$*
 function build() {
   set -x
   docker buildx build \
+    --build-arg BASE=$base \
     --build-arg CARD=$card \
     --build-arg ENABLE_VAI=$vai \
     --build-arg ACRI=$acri \
@@ -32,6 +33,7 @@ function build() {
 
 tag=acri-as:latest
 acri=yes
+base=ubuntu:18.04
 
 xrt_apu=
 platform_tgz=
@@ -42,16 +44,18 @@ case $host in
     echo U200
     card=u200
     vai=no
-    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
-    platform_deb="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u200-xdma-201830.2-2580015_18.04.deb"
+    #xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_20.04-amd64-xrt.deb"
+    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_18.04-amd64-xrt.deb"
+    platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u200-gen3x16-xdma_2022.2_2022_1015_0317-all.deb.tar.gz"
     build
     ;;
   aserv2 )
     echo U250
     card=u250
     vai=no
-    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
-    platform_deb="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u250-xdma-201830.2-2580015_18.04.deb"
+    #xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_20.04-amd64-xrt.deb"
+    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_18.04-amd64-xrt.deb"
+    platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u250-gen3x16-xdma_2022.2_2022_1015_0317-all.deb.tar.gz"
     build
     ;;
   aserv3 )
@@ -65,19 +69,20 @@ case $host in
   aserv4 )
     echo U50
     card=u50
-    vai=25
-    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202120.2.12.427_18.04-amd64-xrt.deb"
-    platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50_2021.2_2021_1021_1001-all.deb.tar.gz"
+    vai=no
+    #xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_20.04-amd64-xrt.deb"
+    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_18.04-amd64-xrt.deb"
+    platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50-gen3x16-xdma_2022.2_2022_1015_0317-all.deb.tar.gz"
     build
     ;;
   aserv5 )
     echo VCK5000
     card=vck5000
-    vai=25
-    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202210.2.13.478_18.04-amd64-xrt.deb"
-    xrt_apu="https://www.xilinx.com/bin/public/openDownload?filename=xrt-apu_202210.2.13.0_all.deb"
-    platform_tgz=
-    platform_deb="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-vck5000-gen4x8-xdma-base_2-20220513_all.deb"
+    vai=no
+    #xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.384_20.04-amd64-xrt.deb"
+    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.384_18.04-amd64-xrt.deb"
+    xrt_apu="https://www.xilinx.com/bin/public/openDownload?filename=xrt-apu-vck5000_202220.2.14.384_petalinux_all.deb"
+    platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-vck5000-gen4x8-qdma_2022.2_2022_1212_1124-all.deb.tar.gz"
     build
     ;;
 esac
@@ -98,7 +103,8 @@ platform_deb=
 case $host in
   aserv1 | aserv2 | aserv3 | aserv4 | aserv5)
     echo Tool
-    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202210.2.13.478_18.04-amd64-xrt.deb"
+    #xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_20.04-amd64-xrt.deb"
+    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_18.04-amd64-xrt.deb"
     build
     ;;
 esac

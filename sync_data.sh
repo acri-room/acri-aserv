@@ -11,7 +11,7 @@ function sync_dir {
 eval $(ssh-agent)
 ssh-add ~/.ssh/id_rsa
 
-targets="aserv1 aserv2 aserv3 aserv4 aserv5 gserv1"
+targets="aserv1 aserv2 aserv3 aserv4 aserv5"
 if [[ ! -z $* ]] ; then
     targets=$*
 fi

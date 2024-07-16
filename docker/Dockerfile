@@ -36,6 +36,7 @@ ARG CARD=${CARD:-no}
 ## ubuntu_base
 ##===========================================================================
 
+#FROM ${BASE:-ubuntu:20.04} as base
 FROM ubuntu:18.04 as base
 
 SHELL ["/bin/bash", "-c"]
@@ -111,7 +112,6 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
       libfdt1 \
       libgflags-dev \
       libgl1-mesa-dri \
-      libgnome2-bin \
       libgoogle-glog-dev \
       libgraphviz-dev \
       libgtk2.0-dev \
@@ -170,8 +170,19 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
 RUN update-locale LANG=ja_JP.UTF-8
 RUN locale-gen en_US.UTF-8
 
+RUN --mount=type=cache,target=/root/downloads \
+    URL=https://github.com/conda-forge/miniforge/releases/download/4.10.3-5/Mambaforge-4.10.3-5-Linux-x86_64.sh \
+    && wget "$URL" -O /tmp/miniconda.sh \
+    && /bin/bash /tmp/miniconda.sh -b -p /opt/conda \
+    && . /opt/conda/etc/profile.d/conda.sh \
+    && conda install -y conda-build \
+    && rm /tmp/miniconda.sh \
+    && /opt/conda/bin/conda clean -y --force-pkgs-dirs
+
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install \
+    . /opt/conda/etc/profile.d/conda.sh && \
+    conda activate && \
+    pip install \
       Flask \
       jupyter \
       jupyterlab \
@@ -183,6 +194,53 @@ RUN --mount=type=cache,target=/root/.cache \
       scipy \
       setuptools \
       wheel
+
+# Install xrdp from source to avoid SIGSEGV
+# https://github.com/neutrinolabs/xrdp/issues/1501
+#RUN --mount=type=cache,target=/var/lib/apt/lists \
+#    --mount=type=cache,target=/var/cache/apt/archives \
+#    apt-get update -y && apt-get install -y \
+#        git autoconf libtool pkg-config gcc g++ make  libssl-dev libpam0g-dev \
+#        libjpeg-dev libx11-dev libxfixes-dev libxrandr-dev  flex bison libxml2-dev \
+#        intltool xsltproc xutils-dev python-libxml2 g++ xutils libfuse-dev \
+#        libmp3lame-dev nasm libpixman-1-dev xserver-xorg-dev libopus-dev
+#
+#RUN --mount=type=cache,target=/var/lib/apt/lists \
+#    --mount=type=cache,target=/var/cache/apt/archives \
+#    apt-get remove -y xrdp \
+#    && VER=0.9.13.1 \
+#    && URL=https://github.com/neutrinolabs/xrdp/releases/download/v$VER/xrdp-$VER.tar.gz \
+#    && TMP=/tmp/xrdp/$(echo $URL | sed 's/^.*[=\/]//') \
+#    && mkdir -p /tmp/xrdp \
+#    && cd /tmp/xrdp \
+#    && wget $URL -O $TMP \
+#    && tar xf $TMP \
+#    && cd /tmp/xrdp/xrdp-$VER \
+#    && ./bootstrap \
+#    && ./configure \
+#      --enable-ipv6 \
+#      --enable-jpeg \
+#      --enable-fuse \
+#      --enable-rfxcodec \
+#      --enable-opus \
+#      --enable-painter \
+#      --enable-vsock \
+#      --build=x86_64-linux-gnu \
+#      --prefix=/usr \
+#      --includedir=/usr/include \
+#      --mandir=/usr/share/man \
+#      --infodir=/usr/share/info \
+#      --sysconfdir=/etc \
+#      --localstatedir=/var \
+#      --disable-silent-rules \
+#      --libdir=/usr/lib/x86_64-linux-gnu \
+#      --libexecdir=/usr/lib/x86_64-linux-gnu \
+#      --disable-maintainer-mode \
+#      --disable-dependency-tracking \
+#      --with-socketdir=/run/xrdp/sockdir \
+#    && make \
+#    && make install \
+#    && rm -rf /tmp/xrdp
 
 ##===========================================================================
 ## vai_base_2x
@@ -775,7 +833,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache/apt/archives \
     --mount=type=cache,target=/root/downloads \
     if [[ -n "$XRT_PACKAGE_URL" ]] ; then \
-        file=/root/downloads/$(echo $XRT_PACKAGE_URL | sed 's/^.*=//') && \
+        file=/root/downloads/$(echo $XRT_PACKAGE_URL | sed 's/^.*[=\/]//') && \
         if [[ ! -e $file ]] ; then \
             wget -O $file "$XRT_PACKAGE_URL" ; \
         fi && \
@@ -788,7 +846,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache/apt/archives \
     --mount=type=cache,target=/root/downloads \
     if [[ -n "$XRT_APU_PACKAGE_URL" ]] ; then \
-        file=/root/downloads/$(echo $XRT_APU_PACKAGE_URL | sed 's/^.*=//') && \
+        file=/root/downloads/$(echo $XRT_APU_PACKAGE_URL | sed 's/^.*[=\/]//') && \
         if [[ ! -e $file ]] ; then \
             wget -O $file "$XRT_APU_PACKAGE_URL" ; \
         fi && \
@@ -801,7 +859,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache/apt/archives \
     --mount=type=cache,target=/root/downloads \
     if [[ -n "$PLATFORM_TAR_GZ_URL" ]] ; then \
-        file=/root/downloads/$(echo $PLATFORM_TAR_GZ_URL | sed 's/^.*=//') && \
+        file=/root/downloads/$(echo $PLATFORM_TAR_GZ_URL | sed 's/^.*[=\/]//') && \
         if [[ ! -e $file ]] ; then \
             wget -O $file "$PLATFORM_TAR_GZ_URL" ; \
         fi && \
@@ -816,7 +874,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache/apt/archives \
     --mount=type=cache,target=/root/downloads \
     if [[ -n "$PLATFORM_DEB_URL" ]] ; then \
-        file=/root/downloads/$(echo $PLATFORM_DEB_URL | sed 's/^.*=//') && \
+        file=/root/downloads/$(echo $PLATFORM_DEB_URL | sed 's/^.*[=\/]//') && \
         if [[ ! -e $file ]] ; then \
             wget -O $file "$PLATFORM_DEB_URL" ; \
         fi && \
@@ -965,7 +1023,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /tmp
 
 # Uninstall rt-engine
-RUN apt remove librt-engine
+#RUN apt remove librt-engine
 # Install rt-engine
 RUN git clone https://github.com/anjn/rt-engine.git /tmp/rt-engine \
     && cd /tmp/rt-engine \
@@ -980,9 +1038,9 @@ RUN mkdir -p \
         /opt/xilinx/overlaybins/DPUCVDX8H/4PE
 
 RUN --mount=type=cache,target=/root/downloads \
-    file=/root/downloads/dpu_DPUCVDX8H_8PE_200M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin && \
+    file=/root/downloads/dpu_DPUCVDX8H_8PE_328M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin && \
     if [[ ! -e $file ]] ; then \
-        wget "https://acri-room.web.app/dpu_DPUCVDX8H_8PE_200M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin" \
+        wget "https://acri-room.web.app/dpu_DPUCVDX8H_8PE_328M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin" \
             -O $file; \
     fi \
     && cp $file /opt/xilinx/overlaybins/DPUCVDX8H/8PE
@@ -1034,12 +1092,13 @@ FROM dev AS user_acri_yes
 # nis
 COPY files/yp.conf /etc/yp.conf
 COPY files/nsswitch.conf /etc/nsswitch.conf
+RUN echo "acri.c.titech.ac.jp" > /etc/defaultdomain
 
 # supervisor
 COPY files/supervisor/nis.conf /etc/supervisor/conf.d
 
 # AIE Tool license
-RUN echo "export XILINXD_LICENSE_FILE=2100@172.16.6.202:2100@172.16.6.205:2100@172.17.6.205" >> /etc/profile
+RUN echo "export XILINXD_LICENSE_FILE=2100@172.16.6.202:2100@172.16.6.205" >> /etc/profile
 
 # sshd
 EXPOSE 22
@@ -1089,9 +1148,15 @@ COPY files/vnc.conf /etc/vnc.conf
 EXPOSE 3389 5901
 
 RUN mkdir -p /var/run/sshd /var/run/dbus
-RUN rm -rf /var/run/dbus/pid
 
-RUN sed -i '/imklog/s/^/#/' /etc/rsyslog.conf
+RUN --mount=type=cache,target=/var/lib/apt/lists \
+    --mount=type=cache,target=/var/cache/apt/archives \
+    apt-get update -y && apt-get install -y \
+        rsyslog
+
+RUN if [ -e /etc/rsyslog.conf ] ; then \
+        sed -i '/imklog/s/^/#/' /etc/rsyslog.conf ; \
+    fi
 
 ###############################################################
 
@@ -1104,8 +1169,14 @@ RUN apt-get update -y && apt-get install -y \
       && apt autoremove -y \
       && rm -rf /var/lib/apt/lists/*
 
-#RUN pip3 install \
-#      jupyterlab
+## # Alveo-PYNQ
+RUN --mount=type=cache,target=/root/.cache \
+    . /opt/conda/etc/profile.d/conda.sh && \
+    conda activate && \
+    pip install \
+        pynq
+
+COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
 
 # Set bash as a default shell for AIE tools
 RUN echo "dash dash/sh boolean false" | debconf-set-selections \
@@ -1114,17 +1185,3 @@ RUN echo "dash dash/sh boolean false" | debconf-set-selections \
 ###############################################################
 
 CMD ["/usr/bin/supervisord"]
-
-## ## # Alveo-PYNQ
-## RUN source $VAI_ROOT/conda/etc/profile.d/conda.sh && \
-##     conda create -n pynq && \
-##     conda activate pynq && \
-##     python3 -m pip install --upgrade pip && \
-##     pip3 install --use-feature=2020-resolver \
-##       pynq \
-##       pynq-alveo-examples \
-##       pynq-compute-labs
-## 
-## COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
-
-

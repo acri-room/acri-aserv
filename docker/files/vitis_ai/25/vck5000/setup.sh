@@ -57,7 +57,7 @@ case $1 in
   DPUCVDX8H_8pe_normal | dpuv4e-8pe-normal)
     if [ "${platform}" = "vck5000_" ]; then
       export XCLBIN_PATH=/opt/xilinx/overlaybins/DPUCVDX8H/8PE
-      export XLNX_VART_FIRMWARE=/opt/xilinx/overlaybins/DPUCVDX8H/8PE/dpu_DPUCVDX8H_8PE_200M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin
+      export XLNX_VART_FIRMWARE=/opt/xilinx/overlaybins/DPUCVDX8H/8PE/dpu_DPUCVDX8H_8PE_328M_xilinx_vck5000_gen4x8_xdma_base_2.xclbin
       export XLNX_VART_FIRMWARE_BATCH_SIZE=8
     else
       export XCLBIN_PATH=

@@ -75,6 +75,9 @@ if [[ $user == "" ]] ; then
   exit
 fi
 
+# Invalid user
+id $user || exit
+
 # Start container
 echo Info: Start user container: image=$repo:$tag, hostname=$hostname, ip=$ip, user=$user, name=$name, date=$(date)
 
@@ -211,6 +214,7 @@ fi
 docker run \
   -dit \
   --network net \
+  --dns 172.16.2.1 \
   --ip $ip \
   --name "$name" \
   --hostname $hostname \
