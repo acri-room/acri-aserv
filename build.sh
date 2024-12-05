@@ -70,9 +70,11 @@ case $host in
     echo U50
     card=u50
     vai=no
-    #xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_20.04-amd64-xrt.deb"
-    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_18.04-amd64-xrt.deb"
-    platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50-gen3x16-xdma_2022.2_2022_1015_0317-all.deb.tar.gz"
+    base=ubuntu:20.04
+    #xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_18.04-amd64-xrt.deb"
+    #platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50-gen3x16-xdma_2022.2_2022_1015_0317-all.deb.tar.gz"
+    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202410.2.17.319_20.04-amd64-xrt.deb"
+    platform_tgz="https://www.xilinx.com/bin/public/openDownload?filename=xilinx-u50-gen3x16-xdma_2024.1_2024_0522_2343-all.deb.tar.gz"
     build
     ;;
   aserv5 )
@@ -101,10 +103,16 @@ platform_tgz=
 platform_deb=
 
 case $host in
-  aserv1 | aserv2 | aserv3 | aserv4 | aserv5)
+  aserv1 | aserv2 | aserv3 | aserv5)
     echo Tool
     #xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_20.04-amd64-xrt.deb"
     xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202220.2.14.354_18.04-amd64-xrt.deb"
+    build
+    ;;
+  aserv4)
+    echo Tool
+    base=ubuntu:20.04
+    xrt="https://www.xilinx.com/bin/public/openDownload?filename=xrt_202410.2.17.319_20.04-amd64-xrt.deb"
     build
     ;;
 esac

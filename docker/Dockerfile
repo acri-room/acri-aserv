@@ -36,8 +36,8 @@ ARG CARD=${CARD:-no}
 ## ubuntu_base
 ##===========================================================================
 
-#FROM ${BASE:-ubuntu:20.04} as base
-FROM ubuntu:18.04 as base
+FROM ${BASE:-ubuntu:20.04} as base
+#FROM ubuntu:18.04 as base
 
 SHELL ["/bin/bash", "-c"]
 
@@ -1181,6 +1181,8 @@ COPY files/pynq-start.sh /opt/pynq-notebooks/start.sh
 # Set bash as a default shell for AIE tools
 RUN echo "dash dash/sh boolean false" | debconf-set-selections \
     && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash || true
+
+RUN rm /run/reboot-required*
 
 ###############################################################
 
