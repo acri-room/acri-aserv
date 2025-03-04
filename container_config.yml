@@ -96,13 +96,13 @@ aserv6:
   servers:
     as006:
       ip: 172.16.6.6
-      cpu: 20
-      mem: 120
+      cpu: 16
+      mem: 96
       driver: rocm
 
     as106:
       ip: 172.16.6.106
-      cpu: 4
-      mem: 4
+      cpu: 8
+      mem: 32
       share: true
 

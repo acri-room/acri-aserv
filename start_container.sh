@@ -196,7 +196,7 @@ gid 50000 50000
 EOF
 
 # mount disks
-for dir in tools scratch opt/xilinx/platforms data ; do
+for dir in tools scratch opt/xilinx/platforms data huggingface ; do
     if [[ -e /$dir ]] ; then
         $LXC config device add $hostname $(basename $dir) disk source=$(readlink -f /$dir) path=/$dir -q
     fi
@@ -248,17 +248,23 @@ $LXC start $hostname
 echo Info: Started, date=$(date)
 
 # Add environment variables
-$LXC file pull $hostname/etc/environment /tmp/$hostname.environment
-echo 'PIP_INDEX_URL="http://172.16.2.9:3141/root/pypi/+simple/"' >> /tmp/$hostname.environment
-echo 'PIP_TRUSTED_HOST=172.16.2.9' >> /tmp/$hostname.environment
-echo 'PIP_NO_CACHE_DIR=1' >> /tmp/$hostname.environment
-echo 'http_proxy=http://172.16.2.9:3128' >> /tmp/$hostname.environment
-echo 'HTTP_PROXY=http://172.16.2.9:3128' >> /tmp/$hostname.environment
-echo 'https_proxy=http://172.16.2.9:3128' >> /tmp/$hostname.environment
-echo 'HTTPS_PROXY=http://172.16.2.9:3128' >> /tmp/$hostname.environment
-echo 'no_proxy=localhost,127.0.0.1,172.16.2.9' >> /tmp/$hostname.environment
-echo 'NO_PROXY=localhost,127.0.0.1,172.16.2.9' >> /tmp/$hostname.environment
-$LXC file push /tmp/$hostname.environment $hostname/etc/environment -q
+$LXC file pull $hostname/etc/profile /tmp/$hostname.profile
+echo 'export PIP_INDEX_URL="http://172.16.2.9:3141/root/pypi/+simple/"' >> /tmp/$hostname.profile
+echo 'export PIP_TRUSTED_HOST=172.16.2.9' >> /tmp/$hostname.profile
+echo 'export PIP_NO_CACHE_DIR=1' >> /tmp/$hostname.profile
+echo 'export HF_ENDPOINT=http://172.16.2.9:8090' >> /tmp/$hostname.profile
+echo 'export HF_HOME=/scratch/$USER/.cache/huggingface' >> /tmp/$hostname.profile
+echo 'export http_proxy=http://172.16.2.9:3128' >> /tmp/$hostname.profile
+echo 'export HTTP_PROXY=http://172.16.2.9:3128' >> /tmp/$hostname.profile
+echo 'export https_proxy=http://172.16.2.9:3128' >> /tmp/$hostname.profile
+echo 'export HTTPS_PROXY=http://172.16.2.9:3128' >> /tmp/$hostname.profile
+echo 'export no_proxy=localhost,127.0.0.1,172.16.2.9' >> /tmp/$hostname.profile
+echo 'export NO_PROXY=localhost,127.0.0.1,172.16.2.9' >> /tmp/$hostname.profile
+$LXC file push /tmp/$hostname.profile $hostname/etc/profile -q
+
+# Allow password authentication (TODO: move to ansible)
+$LXC exec $hostname -- rm /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+$LXC exec $hostname -- systemctl restart sshd
 
 # Wait
 sleep 60
