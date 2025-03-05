@@ -263,7 +263,7 @@ echo 'export NO_PROXY=localhost,127.0.0.1,172.16.2.9' >> /tmp/$hostname.profile
 $LXC file push /tmp/$hostname.profile $hostname/etc/profile -q
 
 # Allow password authentication (TODO: move to ansible)
-$LXC exec $hostname -- rm /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+$LXC exec $hostname -- rm -f /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
 $LXC exec $hostname -- systemctl restart sshd
 
 # Wait
