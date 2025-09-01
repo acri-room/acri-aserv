@@ -70,6 +70,7 @@ docker run \
   -v /opt/xilinx/platforms:/opt/xilinx/platforms \
   -v $cur/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh \
   -v $cur/count-users.sh:/usr/local/bin/count-users.sh \
+  -v $cur/docker/files/supervisor/nis.conf:/etc/supervisor/conf.d/nis.conf:ro \
   --cpus=$cpu \
   --memory ${mem}g \
   --shm-size=2g \

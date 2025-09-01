@@ -225,6 +225,7 @@ docker run \
   -v $xrdp_ini:/etc/xrdp/xrdp.ini \
   -v $cur/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh \
   -v $cur/count-users.sh:/usr/local/bin/count-users.sh \
+  -v $cur/docker/files/supervisor/nis.conf:/etc/supervisor/conf.d/nis.conf:ro \
   -e LOGIN_USER=$user \
   -e LOGIN_USER_UID=$(id -u $user) \
   -e LOGIN_USER_GID=$(id -g $user) \
